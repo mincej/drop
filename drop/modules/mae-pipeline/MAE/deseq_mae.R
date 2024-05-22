@@ -2,16 +2,29 @@
 #' title: Get MAE results
 #' author: vyepez, mumichae
 #' wb:
-#'  log:
-#'   - snakemake: '`sm str(tmp_dir / "MAE" / "deseq" / "{vcf}--{rna}.Rds")`'
-#'  input:
-#'   - mae_counts: '`sm cfg.getProcessedDataDir() + "/mae/allelic_counts/{vcf}--{rna}.csv.gz" `'
-#'  output:
-#'   - mae_res: '`sm cfg.getProcessedResultsDir() + "/mae/samples/{vcf}--{rna}_res.Rds"`'
-#'  type: script
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "MAE" / "deseq" / "{vcf}--{rna}.log") if config["full_log"] else str(tmp_dir / "MAE" / "deseq" / "{vcf}--{rna}.Rds")`'
+#'   input:
+#'     mae_counts: '`sm cfg.getProcessedDataDir() + "/mae/allelic_counts/{vcf}--{rna}.csv.gz" `'
+#'   output:
+#'     mae_res: '`sm cfg.getProcessedResultsDir() + "/mae/samples/{vcf}--{rna}_res.Rds"`'
+#'   type: script
+#'   params:
+#'     full_log: '`sm config["full_log"]`'
+#'   benchmark: '`sm str(bench_dir / "MAE" / "deseq" / "{vcf}--{rna}.log") if config["full_log"] else str(bench_dir / "MAE" / "deseq" / "{vcf}--{rna}.txt")`'
 #'---
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+log_file <- snakemake@log$snakemake
+if(snakemake@params$full_log){
+    log <- file(log_file, open = "wt")
+
+    sink(log, type = "output")
+    sink(log, type = "message")
+    print(snakemake)
+} else {
+    saveRDS(snakemake, log_file)
+}
 
 suppressPackageStartupMessages({
     library(stringr)

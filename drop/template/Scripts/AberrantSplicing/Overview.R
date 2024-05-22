@@ -1,30 +1,38 @@
 #'---
 #' title: Aberrant Splicing
-#' author:
+#' author: null
 #' wb:
-#'  log:
-#'    - snakemake: '`sm str(tmp_dir / "AS" / "Overview.Rds")`'
-#'  params:
-#'    - annotations: '`sm cfg.genome.getGeneVersions()`'
-#'    - datasets: '`sm cfg.AS.groups`'
-#'    - htmlDir: '`sm config["htmlOutputPath"] + "/AberrantSplicing"`'
-#'  input:
-#'    - functions: '`sm cfg.workDir / "Scripts/html_functions.R"`'
-#'    - fds_files: '`sm expand(cfg.getProcessedResultsDir() +
-#'                "/aberrant_splicing/datasets/savedObjects/{dataset}--{annotation}/" +
-#'                "fds-object.RDS", dataset=cfg.AS.groups, annotation=cfg.genome.getGeneVersions())`'
-#'    - result_tables: '`sm expand(cfg.getProcessedResultsDir() +
-#'                    "/aberrant_splicing/results/{annotation}/fraser/{dataset}/results_per_junction.tsv",
-#'                    dataset=cfg.AS.groups, annotation=cfg.genome.getGeneVersions())`'
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "AS" / "Overview.log") if config["full_log"] else str(tmp_dir / "AS" / "Overview.Rds")`'
+#'   params:
+#'     annotations: '`sm cfg.genome.getGeneVersions()`'
+#'     datasets: '`sm cfg.AS.groups`'
+#'     htmlDir: '`sm config["htmlOutputPath"] + "/AberrantSplicing"`'
+#'     full_log: '`sm config["full_log"]`'
+#'   input:
+#'     functions: '`sm cfg.workDir / "Scripts/html_functions.R"`'
+#'     fds_files: '`sm expand(cfg.getProcessedResultsDir() + "/aberrant_splicing/datasets/savedObjects/{dataset}--{annotation}/" + "fds-object.RDS", dataset=cfg.AS.groups, annotation=cfg.genome.getGeneVersions())`'
+#'     result_tables: '`sm expand(cfg.getProcessedResultsDir() + "/aberrant_splicing/results/{annotation}/fraser/{dataset}/results_per_junction.tsv", dataset=cfg.AS.groups, annotation=cfg.genome.getGeneVersions())`'
+#'   benchmark: '`sm str(bench_dir / "AS" / "Overview.log") if config["full_log"] else str(bench_dir / "AS" / "Overview.txt")`'
 #' output:
 #'   html_document:
-#'    code_folding: show
-#'    code_download: TRUE
+#'     code_folding: show
+#'     code_download: true
 #'---
 
 
 #+ include=FALSE
-saveRDS(snakemake, snakemake@log$snakemake)
+
+log_file <- snakemake@log$snakemake
+if(snakemake@params$full_log){
+    log <- file(log_file, open = "wt")
+
+    sink(log, type = "output")
+    sink(log, type = "message")
+    print(snakemake)
+} else {
+    saveRDS(snakemake, log_file)
+}
 source(snakemake@input$functions)
 
 #+ eval=TRUE, echo=FALSE

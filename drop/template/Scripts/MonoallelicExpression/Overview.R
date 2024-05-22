@@ -1,36 +1,41 @@
 #'---
 #' title: Monoallelic Expression
-#' author:
+#' author: null
 #' wb:
-#'  log:
-#'    - snakemake: '`sm str(tmp_dir / "MAE" / "Overview.Rds")`'
-#'  params:
-#'    - annotations: '`sm cfg.genome.getGeneVersions()`'
-#'    - datasets: '`sm cfg.MAE.groups`'
-#'    - qc_groups: '`sm cfg.MAE.qcGroups`'
-#'    - htmlDir: '`sm config["htmlOutputPath"] + "/MonoallelicExpression"`'
-#'    - resultsDir: '`sm cfg.getProcessedResultsDir() + "/mae"`'
-#'  input:
-#'    - functions: '`sm cfg.workDir / "Scripts/html_functions.R"`'
-#'    - allelic_counts: '`sm expand(cfg.getProcessedDataDir() +
-#'                       "/mae/allelic_counts/{mae_id}.csv.gz",
-#'                        mae_id=cfg.MAE.getMaeAll())`'
-#'    - results_sample: '`sm expand(cfg.getProcessedResultsDir() +
-#'                       "/mae/samples/{mae_id}_res.Rds",
-#'                       mae_id=cfg.MAE.getMaeAll())`'
-#'    - results_tables: '`sm expand(cfg.getProcessedResultsDir() +
-#'                       "/mae/{dataset}/MAE_results_{annotation}.tsv",
-#'                       dataset=cfg.MAE.groups, annotation=cfg.genome.getGeneVersions())`'
-#'    - qc_matrix: '`sm expand(cfg.getProcessedResultsDir() + "/mae/{qc_group}/" +
-#'                  "dna_rna_qc_matrix.Rds", qc_group=cfg.MAE.qcGroups)`'
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "MAE" / "Overview.log") if config["full_log"] else str(tmp_dir / "MAE" / "Overview.Rds")`'
+#'   params:
+#'     annotations: '`sm cfg.genome.getGeneVersions()`'
+#'     datasets: '`sm cfg.MAE.groups`'
+#'     qc_groups: '`sm cfg.MAE.qcGroups`'
+#'     htmlDir: '`sm config["htmlOutputPath"] + "/MonoallelicExpression"`'
+#'     resultsDir: '`sm cfg.getProcessedResultsDir() + "/mae"`'
+#'     full_log: '`sm config["full_log"]`'
+#'   input:
+#'     functions: '`sm cfg.workDir / "Scripts/html_functions.R"`'
+#'     allelic_counts: '`sm expand(cfg.getProcessedDataDir() + "/mae/allelic_counts/{mae_id}.csv.gz", mae_id=cfg.MAE.getMaeAll())`'
+#'     results_sample: '`sm expand(cfg.getProcessedResultsDir() + "/mae/samples/{mae_id}_res.Rds", mae_id=cfg.MAE.getMaeAll())`'
+#'     results_tables: '`sm expand(cfg.getProcessedResultsDir() + "/mae/{dataset}/MAE_results_{annotation}.tsv", dataset=cfg.MAE.groups, annotation=cfg.genome.getGeneVersions())`'
+#'     qc_matrix: '`sm expand(cfg.getProcessedResultsDir() + "/mae/{qc_group}/" + "dna_rna_qc_matrix.Rds", qc_group=cfg.MAE.qcGroups)`'
+#'   benchmark: '`sm str(bench_dir / "MAE" / "Overview.log") if config["full_log"] else str(bench_dir / "MAE" / "Overview.txt")`'
 #' output:
 #'   html_document:
-#'    code_folding: show
-#'    code_download: TRUE
+#'     code_folding: show
+#'     code_download: true
 #'---
 
 #+ include=FALSE
-saveRDS(snakemake, snakemake@log$snakemake)
+
+log_file <- snakemake@log$snakemake
+if(snakemake@params$full_log){
+    log <- file(log_file, open = "wt")
+
+    sink(log, type = "output")
+    sink(log, type = "message")
+    print(snakemake)
+} else {
+    saveRDS(snakemake, log_file)
+}
 source(snakemake@input$functions)
 
 #+ eval=TRUE, echo=FALSE

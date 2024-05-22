@@ -2,25 +2,33 @@
 #' title: Collect all counts to FRASER Object
 #' author: Luise Schuller
 #' wb:
-#'  log:
-#'    - snakemake: '`sm str(tmp_dir / "AS" / "{dataset}" / "01_5_collect.Rds")`'
-#'  params:
-#'   - setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
-#'   - workingDir: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets"`'
-#'  input:
-#'    - countsSSdone: '`sm cfg.getProcessedDataDir() + 
-#'                          "/aberrant_splicing/datasets/savedObjects/raw-local-{dataset}/merge_theta.done"`'
-#'    - gRangesSplitCounts: '`sm cfg.getProcessedDataDir() + 
-#'                          "/aberrant_splicing/datasets/cache/raw-local-{dataset}/gRanges_splitCounts.rds"`'
-#'    - spliceSites: '`sm cfg.getProcessedDataDir() + 
-#'                          "/aberrant_splicing/datasets/cache/raw-local-{dataset}/spliceSites_splitCounts.rds"`'
-#'  output:
-#'   - counting_done: '`sm cfg.getProcessedDataDir() + 
-#'                          "/aberrant_splicing/datasets/savedObjects/raw-local-{dataset}/counting.done" `'
-#'  type: script
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "AS" / "{dataset}" / "01_5_collect.log") if config["full_log"] else str(tmp_dir / "AS" / "{dataset}" / "01_5_collect.Rds")`'
+#'   params:
+#'     setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
+#'     workingDir: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets"`'
+#'     full_log: '`sm config["full_log"]`'
+#'   input:
+#'     countsSSdone: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/savedObjects/raw-local-{dataset}/merge_theta.done"`'
+#'     gRangesSplitCounts: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/cache/raw-local-{dataset}/gRanges_splitCounts.rds"`'
+#'     spliceSites: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/cache/raw-local-{dataset}/spliceSites_splitCounts.rds"`'
+#'   output:
+#'     counting_done: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/savedObjects/raw-local-{dataset}/counting.done" `'
+#'   type: script
+#'   benchmark: '`sm str(bench_dir / "AS" / "{dataset}" / "01_5_collect.log") if config["full_log"] else str(bench_dir / "AS" / "{dataset}" / "01_5_collect.txt")`'
 #'---
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+log_file <- snakemake@log$snakemake
+if(snakemake@params$full_log){
+    log <- file(log_file, open = "wt")
+
+    sink(log, type = "output")
+    sink(log, type = "message")
+    print(snakemake)
+} else {
+    saveRDS(snakemake, log_file)
+}
 source(snakemake@params$setup, echo=FALSE)
 
 dataset    <- snakemake@wildcards$dataset

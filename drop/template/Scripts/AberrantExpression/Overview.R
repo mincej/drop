@@ -1,30 +1,37 @@
 #'---
 #' title: Aberrant Expression
-#' author:
+#' author: null
 #' wb:
-#'  log:
-#'    - snakemake: '`sm str(tmp_dir / "AE" / "Overview.Rds")`'
-#'  params:
-#'    - annotations: '`sm cfg.genome.getGeneVersions()`'
-#'    - datasets: '`sm cfg.AE.groups`'
-#'    - htmlDir: '`sm config["htmlOutputPath"] + "/AberrantExpression"`'
-#'  input:
-#'    - functions: '`sm cfg.workDir / "Scripts/html_functions.R"`'
-#'    - odsFiles: '`sm expand(cfg.getProcessedResultsDir() +
-#'                  "/aberrant_expression/{annotation}/outrider/{dataset}/ods.Rds",
-#'                  annotation=cfg.genome.getGeneVersions(), dataset=cfg.AE.groups)`'
-#'    - resultTables: '`sm expand(cfg.getProcessedResultsDir() +
-#'                      "/aberrant_expression/{annotation}/outrider/" +
-#'                      "{dataset}/OUTRIDER_results.tsv",
-#'                      annotation=cfg.genome.getGeneVersions(), dataset=cfg.AE.groups)`'
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "AE" / "Overview.log") if config["full_log"] else str(tmp_dir / "AE" / "Overview.Rds")`'
+#'   params:
+#'     annotations: '`sm cfg.genome.getGeneVersions()`'
+#'     datasets: '`sm cfg.AE.groups`'
+#'     htmlDir: '`sm config["htmlOutputPath"] + "/AberrantExpression"`'
+#'     full_log: '`sm config["full_log"]`'
+#'   input:
+#'     functions: '`sm cfg.workDir / "Scripts/html_functions.R"`'
+#'     odsFiles: '`sm expand(cfg.getProcessedResultsDir() + "/aberrant_expression/{annotation}/outrider/{dataset}/ods.Rds", annotation=cfg.genome.getGeneVersions(), dataset=cfg.AE.groups)`'
+#'     resultTables: '`sm expand(cfg.getProcessedResultsDir() + "/aberrant_expression/{annotation}/outrider/" + "{dataset}/OUTRIDER_results.tsv", annotation=cfg.genome.getGeneVersions(), dataset=cfg.AE.groups)`'
+#'   benchmark: '`sm str(bench_dir / "AE" / "Overview.log") if config["full_log"] else str(bench_dir / "AE" / "Overview.txt")`'
 #' output:
 #'   html_document:
-#'    code_folding: show
-#'    code_download: TRUE
+#'     code_folding: show
+#'     code_download: true
 #'---
 
 #+ include=FALSE
-saveRDS(snakemake, snakemake@log$snakemake)
+
+log_file <- snakemake@log$snakemake
+if(snakemake@params$full_log){
+    log <- file(log_file, open = "wt")
+
+    sink(log, type = "output")
+    sink(log, type = "message")
+    print(snakemake)
+} else {
+    saveRDS(snakemake, log_file)
+}
 source(snakemake@input$functions)
 
 #+ eval=TRUE, echo=FALSE

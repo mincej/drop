@@ -2,26 +2,36 @@
 #' title: P value calculation for OUTRIDER
 #' author: Ines Scheller
 #' wb:
-#'  log:
-#'   - snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "pvalsOUTRIDER.Rds")`'
-#'  params:
-#'   - ids: '`sm lambda w: sa.getIDsByGroup(w.dataset, assay="RNA")`'
-#'   - parse_subsets_for_FDR: '`sm str(projectDir / ".drop" / "helpers" / "parse_subsets_for_FDR.R")`'
-#'   - genes_to_test: '`sm cfg.AE.get("genesToTest")`'
-#'  input:
-#'   - ods_fitted: '`sm cfg.getProcessedResultsDir() + 
-#'           "/aberrant_expression/{annotation}/outrider/{dataset}/ods_fitted.Rds"`'
-#'   - gene_name_mapping: '`sm cfg.getProcessedDataDir() + "/preprocess/{annotation}/gene_name_mapping_{annotation}.tsv"`'
-#'  output:
-#'   - ods_with_pvals: '`sm cfg.getProcessedResultsDir() + 
-#'           "/aberrant_expression/{annotation}/outrider/{dataset}/ods.Rds"`'
-#'  type: script
-#'  threads: 30
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "pvalsOUTRIDER.log") if config["full_log"] else str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "pvalsOUTRIDER.Rds")`'
+#'   params:
+#'     ids: '`sm lambda w: sa.getIDsByGroup(w.dataset, assay="RNA")`'
+#'     parse_subsets_for_FDR: '`sm str(projectDir / ".drop" / "helpers" / "parse_subsets_for_FDR.R")`'
+#'     genes_to_test: '`sm cfg.AE.get("genesToTest")`'
+#'     full_log: '`sm config["full_log"]`'
+#'   input:
+#'     ods_fitted: '`sm cfg.getProcessedResultsDir() + "/aberrant_expression/{annotation}/outrider/{dataset}/ods_fitted.Rds"`'
+#'     gene_name_mapping: '`sm cfg.getProcessedDataDir() + "/preprocess/{annotation}/gene_name_mapping_{annotation}.tsv"`'
+#'   output:
+#'     ods_with_pvals: '`sm cfg.getProcessedResultsDir() + "/aberrant_expression/{annotation}/outrider/{dataset}/ods.Rds"`'
+#'   type: script
+#'   threads: 30
+#'   benchmark: '`sm str(bench_dir / "AE" / "{annotation}" / "{dataset}" / "pvalsOUTRIDER.log") if config["full_log"] else str(bench_dir / "AE" / "{annotation}" / "{dataset}" / "pvalsOUTRIDER.txt")`'
 #'---
 
 
 #+ echo=F
-saveRDS(snakemake, snakemake@log$snakemake)
+
+log_file <- snakemake@log$snakemake
+if(snakemake@params$full_log){
+    log <- file(log_file, open = "wt")
+
+    sink(log, type = "output")
+    sink(log, type = "message")
+    print(snakemake)
+} else {
+    saveRDS(snakemake, log_file)
+}
 
 suppressPackageStartupMessages({
     library(OUTRIDER)

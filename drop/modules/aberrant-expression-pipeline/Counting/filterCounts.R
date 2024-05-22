@@ -2,20 +2,30 @@
 #' title: Filter Counts for OUTRIDER
 #' author: Michaela Mueller
 #' wb:
-#'  log:
-#'   - snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "filter.Rds")`'
-#'  input:
-#'   - counts: '`sm cfg.getProcessedDataDir() +
-#'              "/aberrant_expression/{annotation}/outrider/{dataset}/total_counts.Rds"`'
-#'   - txdb: '`sm cfg.getProcessedDataDir() +
-#'            "/preprocess/{annotation}/txdb.db"`'
-#'  output:
-#'   - ods: '`sm cfg.getProcessedResultsDir() +
-#'           "/aberrant_expression/{annotation}/outrider/{dataset}/ods_unfitted.Rds"`'
-#'  type: script
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "filter.log") if config["full_log"] else str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "filter.Rds")`'
+#'   input:
+#'     counts: '`sm cfg.getProcessedDataDir() + "/aberrant_expression/{annotation}/outrider/{dataset}/total_counts.Rds"`'
+#'     txdb: '`sm cfg.getProcessedDataDir() + "/preprocess/{annotation}/txdb.db"`'
+#'   output:
+#'     ods: '`sm cfg.getProcessedResultsDir() + "/aberrant_expression/{annotation}/outrider/{dataset}/ods_unfitted.Rds"`'
+#'   type: script
+#'   params:
+#'     full_log: '`sm config["full_log"]`'
+#'   benchmark: '`sm str(bench_dir / "AE" / "{annotation}" / "{dataset}" / "filter.log") if config["full_log"] else str(bench_dir / "AE" / "{annotation}" / "{dataset}" / "filter.txt")`'
 #'---
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+log_file <- snakemake@log$snakemake
+if(snakemake@params$full_log){
+    log <- file(log_file, open = "wt")
+
+    sink(log, type = "output")
+    sink(log, type = "message")
+    print(snakemake)
+} else {
+    saveRDS(snakemake, log_file)
+}
 
 suppressPackageStartupMessages({
     library(data.table)

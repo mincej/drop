@@ -2,19 +2,30 @@
 #' title: RVC datasets
 #' author: nickhsmith
 #' wb:
-#'  log:
-#'   - snakemake: '`sm str(tmp_dir / "RVC" / "RVC_Datasets.Rds")`'
-#'  input:
-#'    - summaries: '`sm expand(config["htmlOutputPath"] + 
-#'                 "/rnaVariantCalling/{annotation}/Summary_{dataset}.html",
-#'                 annotation=cfg.genome.getGeneVersions(), dataset=cfg.RVC.groups)`'
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "RVC" / "RVC_Datasets.log") if config["full_log"] else str(tmp_dir / "RVC" / "RVC_Datasets.Rds")`'
+#'   input:
+#'     summaries: '`sm expand(config["htmlOutputPath"] + "/rnaVariantCalling/{annotation}/Summary_{dataset}.html", annotation=cfg.genome.getGeneVersions(), dataset=cfg.RVC.groups)`'
+#'   params:
+#'     full_log: '`sm config["full_log"]`'
+#'   benchmark: '`sm str(bench_dir / "RVC" / "RVC_Datasets.log") if config["full_log"] else str(bench_dir / "RVC" / "RVC_Datasets.txt")`'
 #' output:
 #'   html_document:
-#'    code_folding: hide
-#'    code_download: TRUE
+#'     code_folding: hide
+#'     code_download: true
 #'---
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+log_file <- snakemake@log$snakemake
+if(snakemake@params$full_log){
+    log <- file(log_file, open = "wt")
+
+    sink(log, type = "output")
+    sink(log, type = "message")
+    print(snakemake)
+} else {
+    saveRDS(snakemake, log_file)
+}
 
 # Obtain the annotations and datasets
 datasets <- snakemake@config$rnaVariantCalling$groups 

@@ -1,31 +1,39 @@
 #'---
-#' title: "OUTRIDER Summary: `r paste(snakemake@wildcards$dataset, snakemake@wildcards$annotation, sep = '--')`"
+#' title: 'OUTRIDER Summary: `r paste(snakemake@wildcards$dataset, snakemake@wildcards$annotation, sep = "--")`'
 #' author: mumichae, vyepez
 #' wb:
-#'  log:
-#'   - snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "OUTRIDER_summary.Rds")`'
-#'  params:
-#'   - padjCutoff: '`sm cfg.AE.get("padjCutoff")`'
-#'   - zScoreCutoff: '`sm cfg.AE.get("zScoreCutoff")`'
-#'  input:
-#'   - ods: '`sm cfg.getProcessedResultsDir() +
-#'           "/aberrant_expression/{annotation}/outrider/{dataset}/ods.Rds"`'
-#'   - results: '`sm cfg.getProcessedResultsDir() +
-#'               "/aberrant_expression/{annotation}/outrider/{dataset}/OUTRIDER_results.tsv"`'
-#'  output:
-#'   - wBhtml: '`sm config["htmlOutputPath"] + 
-#'              "/AberrantExpression/Outrider/{annotation}/Summary_{dataset}.html"`'
-#'   - res_html: '`sm config["htmlOutputPath"] + 
-#'              "/AberrantExpression/Outrider/{annotation}/OUTRIDER_results_{dataset}.tsv"`'
-#'  type: noindex
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "OUTRIDER_summary.log") if config["full_log"] else str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "OUTRIDER_summary.Rds")`'
+#'   params:
+#'     padjCutoff: '`sm cfg.AE.get("padjCutoff")`'
+#'     zScoreCutoff: '`sm cfg.AE.get("zScoreCutoff")`'
+#'     full_log: '`sm config["full_log"]`'
+#'   input:
+#'     ods: '`sm cfg.getProcessedResultsDir() + "/aberrant_expression/{annotation}/outrider/{dataset}/ods.Rds"`'
+#'     results: '`sm cfg.getProcessedResultsDir() + "/aberrant_expression/{annotation}/outrider/{dataset}/OUTRIDER_results.tsv"`'
+#'   output:
+#'     wBhtml: '`sm config["htmlOutputPath"] + "/AberrantExpression/Outrider/{annotation}/Summary_{dataset}.html"`'
+#'     res_html: '`sm config["htmlOutputPath"] + "/AberrantExpression/Outrider/{annotation}/OUTRIDER_results_{dataset}.tsv"`'
+#'   type: noindex
+#'   benchmark: '`sm str(bench_dir / "AE" / "{annotation}" / "{dataset}" / "OUTRIDER_summary.log") if config["full_log"] else str(bench_dir / "AE" / "{annotation}" / "{dataset}" / "OUTRIDER_summary.txt")`'
 #' output:
-#'  html_document:
-#'   code_folding: hide
-#'   code_download: TRUE
+#'   html_document:
+#'     code_folding: hide
+#'     code_download: true
 #'---
 
 #+ echo=F
-saveRDS(snakemake, snakemake@log$snakemake)
+
+log_file <- snakemake@log$snakemake
+if(snakemake@params$full_log){
+    log <- file(log_file, open = "wt")
+
+    sink(log, type = "output")
+    sink(log, type = "message")
+    print(snakemake)
+} else {
+    saveRDS(snakemake, log_file)
+}
 
 suppressPackageStartupMessages({
   library(OUTRIDER)

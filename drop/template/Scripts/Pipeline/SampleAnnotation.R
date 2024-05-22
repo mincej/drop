@@ -1,23 +1,35 @@
 #'---
 #' title: Sample Annotation Overview
-#' author:
+#' author: null
 #' wb:
-#'  log:
-#'   - snakemake: '`sm str(tmp_dir / "SampleAnnotation.Rds")`'
-#'  params:
-#'   - hpoFile: '`sm cfg.get("hpoFile")`'
-#'  input: 
-#'   - sampleAnnotation: '`sm sa.file`'
-#'  output:
-#'   - hpoOverlap: '`sm touch(cfg.getProcessedDataDir() + "/sample_anno/genes_overlapping_HPO_terms.tsv")`'
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "SampleAnnotation.log") if config["full_log"] else str(tmp_dir / "SampleAnnotation.Rds")`'
+#'   params:
+#'     hpoFile: '`sm cfg.get("hpoFile")`'
+#'     full_log: '`sm config["full_log"]`'
+#'   input:
+#'     sampleAnnotation: '`sm sa.file`'
+#'   output:
+#'     hpoOverlap: '`sm touch(cfg.getProcessedDataDir() + "/sample_anno/genes_overlapping_HPO_terms.tsv")`'
+#'   benchmark: '`sm str(bench_dir / "SampleAnnotation.log") if config["full_log"] else str(bench_dir / "SampleAnnotation.txt")`'
 #' output:
 #'   html_document:
-#'    code_folding: hide
-#'    code_download: TRUE
+#'     code_folding: hide
+#'     code_download: true
 #'---
 
 #+ echo=F
-saveRDS(snakemake, snakemake@log$snakemake)
+
+log_file <- snakemake@log$snakemake
+if(snakemake@params$full_log){
+    log <- file(log_file, open = "wt")
+
+    sink(log, type = "output")
+    sink(log, type = "message")
+    print(snakemake)
+} else {
+    saveRDS(snakemake, log_file)
+}
 
 suppressPackageStartupMessages({
   library(data.table)

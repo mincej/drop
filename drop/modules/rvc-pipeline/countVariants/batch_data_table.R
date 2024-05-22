@@ -1,23 +1,18 @@
 #'---
-#' title: "RNA Variant Calling Data Table"
+#' title: RNA Variant Calling Data Table
 #' author: nickhsmith
 #' wb:
-#'  log:
-#'    - snakemake: '`sm str(tmp_dir / "RVC" / "{dataset}" / "{annotation}_RVC_data_table.Rds")`'
-#'  input:
-#'   - configParams: '`sm os.path.join(
-#'                        cfg.processedDataDir,
-#'                        "rnaVariantCalling/params/config/rnaVariantCalling_config.tsv")`'
-#'   - annotatedVCF: '`sm os.path.join(
-#'                        cfg.processedResultsDir,
-#'                        "rnaVariantCalling/batch_vcfs", "{dataset}",
-#'                        "{dataset}_{annotation}.annotated.vcf.gz")`'
-#'  output:
-#'   - data_table: '`sm os.path.join(
-#'                        cfg.processedResultsDir,
-#'                        "rnaVariantCalling/data_tables", "{dataset}",
-#'                        "{dataset}_{annotation}_data_table.Rds")`'
-#'  type: script
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "RVC" / "{dataset}" / "{annotation}_RVC_data_table.log") if config["full_log"] else str(tmp_dir / "RVC" / "{dataset}" / "{annotation}_RVC_data_table.Rds")`'
+#'   input:
+#'     configParams: '`sm os.path.join( cfg.processedDataDir, "rnaVariantCalling/params/config/rnaVariantCalling_config.tsv")`'
+#'     annotatedVCF: '`sm os.path.join( cfg.processedResultsDir, "rnaVariantCalling/batch_vcfs", "{dataset}", "{dataset}_{annotation}.annotated.vcf.gz")`'
+#'   output:
+#'     data_table: '`sm os.path.join( cfg.processedResultsDir, "rnaVariantCalling/data_tables", "{dataset}", "{dataset}_{annotation}_data_table.Rds")`'
+#'   type: script
+#'   params:
+#'     full_log: '`sm config["full_log"]`'
+#'   benchmark: '`sm str(bench_dir / "RVC" / "{dataset}" / "{annotation}_RVC_data_table.log") if config["full_log"] else str(bench_dir / "RVC" / "{dataset}" / "{annotation}_RVC_data_table.txt")`'
 #'---
 
 #+ echo=FALSE
@@ -27,7 +22,17 @@ library(tMAE)
 library(dplyr)
 library(GenomicScores)
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+log_file <- snakemake@log$snakemake
+if(snakemake@params$full_log){
+    log <- file(log_file, open = "wt")
+
+    sink(log, type = "output")
+    sink(log, type = "message")
+    print(snakemake)
+} else {
+    saveRDS(snakemake, log_file)
+}
 ####
 # Helper functions
 ####

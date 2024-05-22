@@ -1,17 +1,17 @@
 #'---
-#' title: "RNA Variant Calling Summary: `r paste(snakemake@wildcards$dataset, snakemake@wildcards$annotation, sep = '--')`"
+#' title: 'RNA Variant Calling Summary: `r paste(snakemake@wildcards$dataset, snakemake@wildcards$annotation, sep = "--")`'
 #' author: nickhsmith
 #' wb:
-#'  log:
-#'    - snakemake: '`sm str(tmp_dir / "RVC" / "{dataset}" / "{annotation}_RVC_summary.Rds")`'
-#'  input:
-#'   - data_table: '`sm os.path.join(
-#'                        cfg.processedResultsDir,
-#'                        "rnaVariantCalling/data_tables", "{dataset}",
-#'                        "{dataset}_{annotation}_data_table.Rds")`'
-#'  output:
-#'   - wBhtml: '`sm config["htmlOutputPath"] + "/rnaVariantCalling/{annotation}/Summary_{dataset}.html"`'
-#'  type: noindex
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "RVC" / "{dataset}" / "{annotation}_RVC_summary.log") if config["full_log"] else str(tmp_dir / "RVC" / "{dataset}" / "{annotation}_RVC_summary.Rds")`'
+#'   input:
+#'     data_table: '`sm os.path.join( cfg.processedResultsDir, "rnaVariantCalling/data_tables", "{dataset}", "{dataset}_{annotation}_data_table.Rds")`'
+#'   output:
+#'     wBhtml: '`sm config["htmlOutputPath"] + "/rnaVariantCalling/{annotation}/Summary_{dataset}.html"`'
+#'   type: noindex
+#'   params:
+#'     full_log: '`sm config["full_log"]`'
+#'   benchmark: '`sm str(bench_dir / "RVC" / "{dataset}" / "{annotation}_RVC_summary.log") if config["full_log"] else str(bench_dir / "RVC" / "{dataset}" / "{annotation}_RVC_summary.txt")`'
 #'---
 
 
@@ -19,7 +19,17 @@
 library(data.table)
 library(ggplot2)
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+log_file <- snakemake@log$snakemake
+if(snakemake@params$full_log){
+    log <- file(log_file, open = "wt")
+
+    sink(log, type = "output")
+    sink(log, type = "message")
+    print(snakemake)
+} else {
+    saveRDS(snakemake, log_file)
+}
 
 res <- readRDS(snakemake@input$data_table)
 res_plot <- copy(res)

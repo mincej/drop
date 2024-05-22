@@ -1,25 +1,33 @@
 #'---
-#' title: "FRASER Summary: `r paste(snakemake@wildcards$dataset, snakemake@wildcards$annotation, sep = '--')`"
+#' title: 'FRASER Summary: `r paste(snakemake@wildcards$dataset, snakemake@wildcards$annotation, sep = "--")`'
 #' author: mumichae, vyepez, ischeller
 #' wb:
-#'  log:
-#'    - snakemake: '`sm str(tmp_dir / "AS" / "{dataset}--{annotation}" / "FRASER_summary.Rds")`'
-#'  params:
-#'   - setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
-#'  input:
-#'   - fdsin: '`sm cfg.getProcessedResultsDir() + 
-#'                 "/aberrant_splicing/datasets/savedObjects/{dataset}--{annotation}/fds-object.RDS"`'
-#'   - results: '`sm cfg.getProcessedResultsDir() + 
-#'                   "/aberrant_splicing/results/{annotation}/fraser/{dataset}/results.tsv"`'
-#'  output:
-#'   - wBhtml: '`sm config["htmlOutputPath"] +
-#'               "/AberrantSplicing/{dataset}--{annotation}_summary.html"`'
-#'   - res_html: '`sm config["htmlOutputPath"] +
-#'               "/AberrantSplicing/FRASER_results_{dataset}--{annotation}.tsv"`'
-#'  type: noindex
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "AS" / "{dataset}--{annotation}" / "FRASER_summary.log") if config["full_log"] else str(tmp_dir / "AS" / "{dataset}--{annotation}" / "FRASER_summary.Rds")`'
+#'   params:
+#'     setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
+#'     full_log: '`sm config["full_log"]`'
+#'   input:
+#'     fdsin: '`sm cfg.getProcessedResultsDir() + "/aberrant_splicing/datasets/savedObjects/{dataset}--{annotation}/fds-object.RDS"`'
+#'     results: '`sm cfg.getProcessedResultsDir() + "/aberrant_splicing/results/{annotation}/fraser/{dataset}/results.tsv"`'
+#'   output:
+#'     wBhtml: '`sm config["htmlOutputPath"] + "/AberrantSplicing/{dataset}--{annotation}_summary.html"`'
+#'     res_html: '`sm config["htmlOutputPath"] + "/AberrantSplicing/FRASER_results_{dataset}--{annotation}.tsv"`'
+#'   type: noindex
+#'   benchmark: '`sm str(bench_dir / "AS" / "{dataset}--{annotation}" / "FRASER_summary.log") if config["full_log"] else str(bench_dir / "AS" / "{dataset}--{annotation}" / "FRASER_summary.txt")`'
 #'---
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+log_file <- snakemake@log$snakemake
+if(snakemake@params$full_log){
+    log <- file(log_file, open = "wt")
+
+    sink(log, type = "output")
+    sink(log, type = "message")
+    print(snakemake)
+} else {
+    saveRDS(snakemake, log_file)
+}
 source(snakemake@params$setup, echo=FALSE)
 
 suppressPackageStartupMessages({

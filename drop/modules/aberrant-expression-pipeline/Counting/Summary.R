@@ -1,24 +1,35 @@
 #'---
-#' title: "Counts Summary: `r paste(snakemake@wildcards$dataset, snakemake@wildcards$annotation, sep = '--')`"
-#' author: 
+#' title: 'Counts Summary: `r paste(snakemake@wildcards$dataset, snakemake@wildcards$annotation, sep = "--")`'
+#' author: null
 #' wb:
-#'  log:
-#'   - snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "count_summary.Rds")`'
-#'  input: 
-#'    - ods: '`sm cfg.getProcessedResultsDir() +
-#'            "/aberrant_expression/{annotation}/outrider/{dataset}/ods_unfitted.Rds"`'
-#'    - bam_cov: '`sm rules.aberrantExpression_mergeBamStats.output`'
-#'  output:
-#'   - wBhtml: '`sm config["htmlOutputPath"] +
-#'              "/AberrantExpression/Counting/{annotation}/Summary_{dataset}.html"`'
-#'  type: noindex
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "count_summary.log") if config["full_log"] else str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "count_summary.Rds")`'
+#'   input:
+#'     ods: '`sm cfg.getProcessedResultsDir() + "/aberrant_expression/{annotation}/outrider/{dataset}/ods_unfitted.Rds"`'
+#'     bam_cov: '`sm rules.aberrantExpression_mergeBamStats.output`'
+#'   output:
+#'     wBhtml: '`sm config["htmlOutputPath"] + "/AberrantExpression/Counting/{annotation}/Summary_{dataset}.html"`'
+#'   type: noindex
+#'   params:
+#'     full_log: '`sm config["full_log"]`'
+#'   benchmark: '`sm str(bench_dir / "AE" / "{annotation}" / "{dataset}" / "count_summary.log") if config["full_log"] else str(bench_dir / "AE" / "{annotation}" / "{dataset}" / "count_summary.txt")`'
 #' output:
-#'  html_document:
-#'   code_folding: hide
-#'   code_download: TRUE
+#'   html_document:
+#'     code_folding: hide
+#'     code_download: true
 #'---
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+log_file <- snakemake@log$snakemake
+if(snakemake@params$full_log){
+    log <- file(log_file, open = "wt")
+
+    sink(log, type = "output")
+    sink(log, type = "message")
+    print(snakemake)
+} else {
+    saveRDS(snakemake, log_file)
+}
 
 suppressPackageStartupMessages({
   library(OUTRIDER)

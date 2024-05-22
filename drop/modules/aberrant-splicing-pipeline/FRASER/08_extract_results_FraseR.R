@@ -2,33 +2,40 @@
 #' title: Results of FRASER analysis
 #' author: Christian Mertes
 #' wb:
-#'  log:
-#'    - snakemake: '`sm str(tmp_dir / "AS" / "{dataset}--{annotation}" / "08_results.Rds")`'
-#'  params:
-#'   - workingDir: '`sm cfg.getProcessedResultsDir() + "/aberrant_splicing/datasets/"`'
-#'   - padjCutoff: '`sm cfg.AS.get("padjCutoff")`'
-#'   - deltaPsiCutoff: '`sm cfg.AS.get("deltaPsiCutoff")`'
-#'   - hpoFile: '`sm cfg.get("hpoFile")`'
-#'  threads: 10
-#'  input:
-#'   - setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
-#'   - add_HPO_cols: '`sm str(projectDir / ".drop" / "helpers" / "add_HPO_cols.R")`'
-#'   - sampleAnnoFile: '`sm config["sampleAnnotation"]`'
-#'   - fdsin: '`sm expand(cfg.getProcessedResultsDir() +
-#'                 "/aberrant_splicing/datasets/savedObjects/{dataset}--{annotation}/" +
-#'                  "padjBetaBinomial_{type}.h5", type=cfg.AS.getPsiTypeAssay(), allow_missing=True)`'
-#'   - txdb: '`sm cfg.getProcessedDataDir() + "/preprocess/{annotation}/txdb.db"`'
-#'  output:
-#'   - resultTableJunc: '`sm cfg.getProcessedResultsDir() +
-#'                          "/aberrant_splicing/results/{annotation}/fraser/{dataset}/results_per_junction.tsv"`'
-#'   - resultTableGene_full: '`sm cfg.getProcessedResultsDir() +
-#'                          "/aberrant_splicing/results/{annotation}/fraser/{dataset}/results_gene_all.tsv"`'
-#'   - resultTableGene_aberrant: '`sm cfg.getProcessedResultsDir() +
-#'                          "/aberrant_splicing/results/{annotation}/fraser/{dataset}/results.tsv"`'
-#'  type: script
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "AS" / "{dataset}--{annotation}" / "08_results.log") if config["full_log"] else str(tmp_dir / "AS" / "{dataset}--{annotation}" / "08_results.Rds")`'
+#'   params:
+#'     workingDir: '`sm cfg.getProcessedResultsDir() + "/aberrant_splicing/datasets/"`'
+#'     padjCutoff: '`sm cfg.AS.get("padjCutoff")`'
+#'     deltaPsiCutoff: '`sm cfg.AS.get("deltaPsiCutoff")`'
+#'     hpoFile: '`sm cfg.get("hpoFile")`'
+#'     full_log: '`sm config["full_log"]`'
+#'   threads: 10
+#'   input:
+#'     setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
+#'     add_HPO_cols: '`sm str(projectDir / ".drop" / "helpers" / "add_HPO_cols.R")`'
+#'     sampleAnnoFile: '`sm config["sampleAnnotation"]`'
+#'     fdsin: '`sm expand(cfg.getProcessedResultsDir() + "/aberrant_splicing/datasets/savedObjects/{dataset}--{annotation}/" + "padjBetaBinomial_{type}.h5", type=cfg.AS.getPsiTypeAssay(), allow_missing=True)`'
+#'     txdb: '`sm cfg.getProcessedDataDir() + "/preprocess/{annotation}/txdb.db"`'
+#'   output:
+#'     resultTableJunc: '`sm cfg.getProcessedResultsDir() + "/aberrant_splicing/results/{annotation}/fraser/{dataset}/results_per_junction.tsv"`'
+#'     resultTableGene_full: '`sm cfg.getProcessedResultsDir() + "/aberrant_splicing/results/{annotation}/fraser/{dataset}/results_gene_all.tsv"`'
+#'     resultTableGene_aberrant: '`sm cfg.getProcessedResultsDir() + "/aberrant_splicing/results/{annotation}/fraser/{dataset}/results.tsv"`'
+#'   type: script
+#'   benchmark: '`sm str(bench_dir / "AS" / "{dataset}--{annotation}" / "08_results.log") if config["full_log"] else str(bench_dir / "AS" / "{dataset}--{annotation}" / "08_results.txt")`'
 #'---
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+log_file <- snakemake@log$snakemake
+if(snakemake@params$full_log){
+    log <- file(log_file, open = "wt")
+
+    sink(log, type = "output")
+    sink(log, type = "message")
+    print(snakemake)
+} else {
+    saveRDS(snakemake, log_file)
+}
 source(snakemake@input$setup, echo=FALSE)
 source(snakemake@input$add_HPO_cols)
 library(AnnotationDbi)

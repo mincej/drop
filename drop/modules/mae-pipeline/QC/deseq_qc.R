@@ -2,16 +2,29 @@
 #' title: MAE test on qc variants
 #' author: vyepez
 #' wb:
-#'  log:
-#'   - snakemake: '`sm str(tmp_dir / "MAE" / "deseq" / "QC--{rna}.Rds")`'
-#'  input:
-#'   - qc_counts: '`sm cfg.getProcessedDataDir() + "/mae/allelic_counts/QC--{rna}.csv.gz" `'
-#'  output:
-#'   - mae_res: '`sm cfg.getProcessedDataDir() + "/mae/RNA_GT/{rna}.Rds"`'
-#'  type: script
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "MAE" / "deseq" / "QC--{rna}.log") if config["full_log"] else str(tmp_dir / "MAE" / "deseq" / "QC--{rna}.Rds")`'
+#'   input:
+#'     qc_counts: '`sm cfg.getProcessedDataDir() + "/mae/allelic_counts/QC--{rna}.csv.gz" `'
+#'   output:
+#'     mae_res: '`sm cfg.getProcessedDataDir() + "/mae/RNA_GT/{rna}.Rds"`'
+#'   type: script
+#'   params:
+#'     full_log: '`sm config["full_log"]`'
+#'   benchmark: '`sm str(bench_dir / "MAE" / "deseq" / "QC--{rna}.log") if config["full_log"] else str(bench_dir / "MAE" / "deseq" / "QC--{rna}.txt")`'
 #'---
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+log_file <- snakemake@log$snakemake
+if(snakemake@params$full_log){
+    log <- file(log_file, open = "wt")
+
+    sink(log, type = "output")
+    sink(log, type = "message")
+    print(snakemake)
+} else {
+    saveRDS(snakemake, log_file)
+}
 
 suppressPackageStartupMessages({
   library(GenomicRanges)

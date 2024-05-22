@@ -2,22 +2,32 @@
 #' title: Calculate PSI values
 #' author: Christian Mertes
 #' wb:
-#'  log:
-#'   - snakemake: '`sm str(tmp_dir / "AS" / "{dataset}" / "02_PSIcalc.Rds")`'
-#'  params:
-#'   - setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
-#'   - workingDir: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/"`'
-#'  threads: 30
-#'  input:
-#'   - counting_done: '`sm cfg.getProcessedDataDir() + 
-#'                "/aberrant_splicing/datasets/savedObjects/raw-local-{dataset}/counting.done" `'
-#'  output:
-#'  - splice_metrics: '`sm expand(cfg.getProcessedDataDir() +
-#'                    "/aberrant_splicing/datasets/savedObjects/raw-local-{dataset}/{type}.h5", type=cfg.AS.getPsiTypeAssay(), allow_missing=True)`'
-#'  type: script
-#'--- 
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "AS" / "{dataset}" / "02_PSIcalc.log") if config["full_log"] else str(tmp_dir / "AS" / "{dataset}" / "02_PSIcalc.Rds")`'
+#'   params:
+#'     setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
+#'     workingDir: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/"`'
+#'     full_log: '`sm config["full_log"]`'
+#'   threads: 30
+#'   input:
+#'     counting_done: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/savedObjects/raw-local-{dataset}/counting.done" `'
+#'   output:
+#'     splice_metrics: '`sm expand(cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/savedObjects/raw-local-{dataset}/{type}.h5", type=cfg.AS.getPsiTypeAssay(), allow_missing=True)`'
+#'   type: script
+#'   benchmark: '`sm str(bench_dir / "AS" / "{dataset}" / "02_PSIcalc.log") if config["full_log"] else str(bench_dir / "AS" / "{dataset}" / "02_PSIcalc.txt")`'
+#'---
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+log_file <- snakemake@log$snakemake
+if(snakemake@params$full_log){
+    log <- file(log_file, open = "wt")
+
+    sink(log, type = "output")
+    sink(log, type = "message")
+    print(snakemake)
+} else {
+    saveRDS(snakemake, log_file)
+}
 source(snakemake@params$setup, echo=FALSE)
 
 dataset    <- snakemake@wildcards$dataset

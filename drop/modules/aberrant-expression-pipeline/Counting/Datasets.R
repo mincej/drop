@@ -1,20 +1,31 @@
 #'---
 #' title: Counts Overview
-#' author:  mumichae, salazar
+#' author: mumichae, salazar
 #' wb:
-#'  log:
-#'   - snakemake: '`sm str(tmp_dir / "AE" / "Count_Overview.Rds")`'
-#'  input: 
-#'   - summaries: '`sm expand(config["htmlOutputPath"] + 
-#'                "/AberrantExpression/Counting/{annotation}/Summary_{dataset}.html",
-#'                annotation=cfg.genome.getGeneVersions(), dataset=cfg.AE.groups)`'
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "AE" / "Count_Overview.log") if config["full_log"] else str(tmp_dir / "AE" / "Count_Overview.Rds")`'
+#'   input:
+#'     summaries: '`sm expand(config["htmlOutputPath"] + "/AberrantExpression/Counting/{annotation}/Summary_{dataset}.html", annotation=cfg.genome.getGeneVersions(), dataset=cfg.AE.groups)`'
+#'   params:
+#'     full_log: '`sm config["full_log"]`'
+#'   benchmark: '`sm str(bench_dir / "AE" / "Count_Overview.log") if config["full_log"] else str(bench_dir / "AE" / "Count_Overview.txt")`'
 #' output:
 #'   html_document:
-#'    code_folding: hide
-#'    code_download: TRUE
+#'     code_folding: hide
+#'     code_download: true
 #'---
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+log_file <- snakemake@log$snakemake
+if(snakemake@params$full_log){
+    log <- file(log_file, open = "wt")
+
+    sink(log, type = "output")
+    sink(log, type = "message")
+    print(snakemake)
+} else {
+    saveRDS(snakemake, log_file)
+}
 
 # Obtain the annotations and datasets
 gene_annotation_names <- names(snakemake@config$geneAnnotation)
