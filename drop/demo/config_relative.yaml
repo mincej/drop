@@ -3,6 +3,7 @@ htmlOutputPath: Output/html
 indexWithFolderName: true
 root: Output
 sampleAnnotation: Data/sample_annotation.tsv
+full_log: true
 geneAnnotation:
   v29: Data/gencode_annotation_trunc.gtf
 genomeAssembly: hg19

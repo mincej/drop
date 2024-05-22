@@ -14,7 +14,7 @@ class DropConfig:
         # wbuild keys
         "projectTitle", "htmlOutputPath", "scriptsPath", "indexWithFolderName", "fileRegex", "readmePath",
         # global parameters
-        "root", "sampleAnnotation", "geneAnnotation", "genomeAssembly", "exportCounts", "tools", "hpoFile","genome",
+        "root", "sampleAnnotation", "geneAnnotation", "genomeAssembly", "exportCounts", "tools", "hpoFile", "genome", "full_log",
         # modules
         "aberrantExpression", "aberrantSplicing", "mae","rnaVariantCalling"
 
@@ -131,9 +131,9 @@ class DropConfig:
         config_dict["wBuildPath"] = utils.getWBuildPath()
 
         setKey = utils.setKey
+        setKey(config_dict, None, "full_log", False)
         setKey(config_dict, None, "fileRegex", r".*\.(R|md)")
         setKey(config_dict, None, "genomeAssembly", "hg19")
-
         hpo_url = 'https://www.cmm.in.tum.de/public/paper/drop_analysis/resource/hpo_genes.tsv.gz'
         setKey(config_dict, None, "hpoFile", hpo_url)
 
