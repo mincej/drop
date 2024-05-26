@@ -62,18 +62,20 @@ if(nrow(sa[is.na(RNA_ID)]) > 0){
 
 
 #' Check for nonexistent BAM files
-sa[, aux1 := file.exists(RNA_BAM_FILE)]
-if(any(sa$aux1 == F)){
-  print('The following BAM files do not exist: ')
-  DT::datatable(sa[aux1 == F])
-}
-
-#' Check for nonexistent VCF files
-if(! all(sa[,is.na(DNA_VCF_FILE)])){
-  sa[, aux1 := file.exists(DNA_VCF_FILE)]
+if(sum(sa[, "EXTERNAL"]) != nrow(sa)){
+  sa[, aux1 := file.exists(RNA_BAM_FILE)]
   if(any(sa$aux1 == F)){
-    print('The following VCF files do not exist: ')
+    print('The following BAM files do not exist: ')
     DT::datatable(sa[aux1 == F])
+  }
+
+  #' Check for nonexistent VCF files
+  if(! all(sa[,is.na(DNA_VCF_FILE)])){
+    sa[, aux1 := file.exists(DNA_VCF_FILE)]
+    if(any(sa$aux1 == F)){
+      print('The following VCF files do not exist: ')
+      DT::datatable(sa[aux1 == F])
+    }
   }
 }
 

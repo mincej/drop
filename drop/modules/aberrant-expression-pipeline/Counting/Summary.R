@@ -232,27 +232,30 @@ if(isEmpty(sex_idx)){
     
     # Train only in male/female in case there are other values
     train_dt <- sex_dt[SEX %in% c('f', 'm', 'female', 'male')]
-    
-    library("MASS")
-    lda <- lda(SEX ~ log2(XIST+1) + log2(UTY+1), data = train_dt)
-    
-    sex_dt[, predicted_sex := predict(lda, sex_dt)$class]
-    sex_dt[, match_sex := SEX == predicted_sex]
-    table(sex_dt[, .(SEX, predicted_sex)])
-    
-    g <- ggplot(sex_dt, aes(XIST+1, UTY+1)) + 
-      geom_point(aes(col = SEX, shape = predicted_sex, alpha = match_sex)) + 
-      scale_x_log10(limits = c(1,NA)) + scale_y_log10(limits = c(1,NA)) +
-      scale_alpha_manual(values = c(1, .1)) + 
-      theme_cowplot() + background_grid(major = 'xy', minor = 'xy') + 
-      annotation_logticks(sides = 'bl') + 
-      labs(color = 'Sex', shape = 'Predicted sex', alpha = 'Matches sex')
-    plot(g)
-    
-    DT::datatable(sex_dt[match_sex == F], caption = 'Sex mismatches')
-    
-    # Write table
-    fwrite(sex_dt, gsub('ods_unfitted.Rds', 'xist_uty.tsv', snakemake@input$ods), 
-           sep = '\t', quote = F)
+    if(length(unique(train_dt$SEX)) == 1){
+      print("Only one recorded sex -- cannot predict sex.")
+    } else {
+      library("MASS")
+      lda <- lda(SEX ~ log2(XIST+1) + log2(UTY+1), data = train_dt)
+      
+      sex_dt[, predicted_sex := predict(lda, sex_dt)$class]
+      sex_dt[, match_sex := SEX == predicted_sex]
+      table(sex_dt[, .(SEX, predicted_sex)])
+      
+      g <- ggplot(sex_dt, aes(XIST+1, UTY+1)) + 
+        geom_point(aes(col = SEX, shape = predicted_sex, alpha = match_sex)) + 
+        scale_x_log10(limits = c(1,NA)) + scale_y_log10(limits = c(1,NA)) +
+        scale_alpha_manual(values = c(1, .1)) + 
+        theme_cowplot() + background_grid(major = 'xy', minor = 'xy') + 
+        annotation_logticks(sides = 'bl') + 
+        labs(color = 'Sex', shape = 'Predicted sex', alpha = 'Matches sex')
+      plot(g)
+      
+      DT::datatable(sex_dt[match_sex == F], caption = 'Sex mismatches')
+      
+      # Write table
+      fwrite(sex_dt, gsub('ods_unfitted.Rds', 'xist_uty.tsv', snakemake@input$ods), 
+            sep = '\t', quote = F)
+    }
   }
 }
