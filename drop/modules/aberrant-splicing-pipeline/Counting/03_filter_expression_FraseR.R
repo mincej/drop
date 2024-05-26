@@ -6,11 +6,14 @@
 #'    - snakemake: '`sm str(tmp_dir / "AS" / "{dataset}" / "03_filter.Rds")`'
 #'  params:
 #'   - setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
+#'   - init_ext_FRASER_counts: '`sm str(projectDir / ".drop" / "helpers" / "init_ext_FRASER_counts.R")`'
 #'   - workingDir: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/"`'
+#'   - localIDs: '`sm lambda w: sa.getIDsByGroup(w.dataset, assay="RNA")`'
 #'   - exCountIDs: '`sm lambda w: sa.getIDsByGroup(w.dataset, assay="SPLICE_COUNT")`'
 #'  input:
-#'   - splice_metrics: '`sm expand(cfg.getProcessedDataDir() +
-#'                  "/aberrant_splicing/datasets/savedObjects/raw-local-{dataset}/{type}.h5", type=cfg.AS.getPsiTypeAssay(), allow_missing=True)`'
+#'   - splice_metrics: '`sm lambda w: expand(cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/savedObjects/raw-local-{dataset}/{type}.h5", type=cfg.AS.getPsiTypeAssay(), allow_missing=True)
+#'                                    if len(sa.getIDsByGroup(w.dataset, assay="RNA")) != 0 else
+#                                     cfg.getProcessedDataDir()`'
 #'   - exCounts: '`sm lambda w: cfg.AS.getExternalCounts(w.dataset, "k_j_counts")`'
 #'  output:
 #'   - fds: '`sm cfg.getProcessedDataDir() +
@@ -21,8 +24,12 @@
 #'  type: script
 #'---
 
+# if len(sa.getIDsByGroup(w.dataset, assay="RNA")) != 0 else
+# cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/savedObjects/raw-local-{dataset}/n_local.done
+
 saveRDS(snakemake, snakemake@log$snakemake)
 source(snakemake@params$setup, echo=FALSE)
+source(snakemake@params$init_ext_FRASER_counts)
 
 opts_chunk$set(fig.width=12, fig.height=8)
 
@@ -30,6 +37,7 @@ opts_chunk$set(fig.width=12, fig.height=8)
 dataset    <- snakemake@wildcards$dataset
 workingDir <- snakemake@params$workingDir
 params     <- snakemake@config$aberrantSplicing
+localIDs <- snakemake@params$localIDs
 exCountIDs <- snakemake@params$exCountIDs
 exCountFiles <- snakemake@input$exCounts
 sample_anno_file <- snakemake@config$sampleAnnotation
@@ -39,16 +47,28 @@ quantileMinExpression <- params$quantileMinExpression
 minDeltaPsi <- params$minDeltaPsi
 filterOnJaccard <- (params$FRASER_version == "FRASER2")
 
-fds <- loadFraserDataSet(dir=workingDir, name=paste0("raw-local-", dataset))
-
 register(MulticoreParam(snakemake@threads))
 # Limit number of threads for DelayedArray operations
 setAutoBPPARAM(MulticoreParam(snakemake@threads))
 
+fds <- NULL
+
+# If there are no local IDs, initialize our data FRASER data using the first external count file. 
+if(length(localIDs) == 0){
+    resource <- exCountFiles[[1]]
+
+    fds <- externalFRASER(dirname(resource), sample_anno_file, workingDir, paste0("raw-", dataset), exCountIDs)
+    
+    exCountFiles <- exCountFiles[exCountFiles != resource]
+} else {
+    fds <- loadFraserDataSet(dir=workingDir, name=paste0("raw-local-", dataset))
+}
+
 # Add external data if provided by dataset
 if(length(exCountIDs) > 0){
+
     message("create new merged fraser object")
-    fds <- saveFraserDataSet(fds,dir = workingDir, name=paste0("raw-", dataset))
+    fds <- saveFraserDataSet(fds, dir = workingDir, name=paste0("raw-", dataset))
 
     for(resource in unique(exCountFiles)){
         exSampleIDs <- exCountIDs[exCountFiles == resource]
@@ -65,7 +85,9 @@ if(length(exCountIDs) > 0){
                 sampleIDs=exSampleIDs, annotation=exAnno)
         fds@colData$isExternal <- as.factor(!is.na(fds@colData$SPLICE_COUNTS_DIR))
     }
-} else {
+   
+} else if(length(localIDs) > 0){
+    fds <- loadFraserDataSet(dir=workingDir, name=paste0("raw-local-", dataset))
     message("symLink fraser dir")
     file.symlink(paste0(workingDir, "savedObjects/","raw-local-", dataset),
                  paste0(workingDir, "savedObjects/","raw-", dataset))

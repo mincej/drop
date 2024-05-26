@@ -7,6 +7,7 @@
 #'  params:
 #'   - setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
 #'   - workingDir: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/"`'
+#'   - localIDs: '`sm lambda w: sa.getIDsByGroup(w.dataset, assay="RNA")`'
 #'  input:
 #'   - filter: '`sm expand(cfg.getProcessedDataDir() +
 #'                  "/aberrant_splicing/datasets/savedObjects/{dataset}/filter_{version}.done", version=cfg.AS.get("FRASER_version"), allow_missing=True)`'
@@ -27,11 +28,18 @@ suppressPackageStartupMessages({
 #+ input
 dataset    <- snakemake@wildcards$dataset
 workingDir <- snakemake@params$workingDir
+localIDs <- snakemake@params$localIDs
 
-fdsLocal <- loadFraserDataSet(dir=workingDir, name=paste0("raw-local-", dataset))
+has_local <- length(localIDs) > 0
+
 fdsMerge <- loadFraserDataSet(dir=workingDir, name=paste0("raw-", dataset))
-
 has_external <- !(all(is.na(fdsMerge@colData$SPLICE_COUNTS_DIR)) || is.null(fdsMerge@colData$SPLICE_COUNTS_DIR))
+
+fdsLocal <- NULL
+if(has_local){
+    fdsLocal <- loadFraserDataSet(dir=workingDir, name=paste0("raw-local-", dataset))
+}
+
 if(has_external){
     fdsMerge@colData$isExternal <- as.factor(!is.na(fdsMerge@colData$SPLICE_COUNTS_DIR))
 }else{
@@ -45,7 +53,7 @@ devNull <- saveFraserDataSet(fdsMerge,dir=workingDir, name=paste0("raw-", datase
 #' External: `r sum(as.logical(fdsMerge@colData$isExternal))`  
 #' 
 #' ## Number of introns:  
-#' Local (before filtering): `r length(rowRanges(fdsLocal, type = "j"))`  
+#' Local (before filtering): `r if(has_local) length(rowRanges(fdsLocal, type = "j")) else 0`  
 #' ```{asis, echo = has_external} 
 #' Merged with external counts (before filtering):
 #' ``` 
@@ -55,7 +63,7 @@ devNull <- saveFraserDataSet(fdsMerge,dir=workingDir, name=paste0("raw-", datase
 #' After filtering: `r sum(mcols(fdsMerge, type="j")[,"passed"])`
 #' 
 #' ## Number of splice sites: 
-#' Local: `r length(rowRanges(fdsLocal, type = "theta"))`  
+#' Local: `r if(has_local) length(rowRanges(fdsLocal, type = "theta")) else 0`  
 #' ```{asis, echo = has_external}
 #' Merged with external counts:
 #' ``` 

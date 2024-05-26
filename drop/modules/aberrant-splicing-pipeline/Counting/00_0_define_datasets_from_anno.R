@@ -3,7 +3,7 @@
 #' author: Christian Mertes, mumichae
 #' wb:
 #'  log:
-#'    - snakemake: '`sm str(tmp_dir / "AS" / "{dataset}" / "00_defineDataset.Rds")`'
+#'    - snakemake: '`sm str(tmp_dir / "AS" / "{dataset}" / "00_0_defineDataset.Rds")`'
 #'  params:
 #'    - setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
 #'    - ids: '`sm lambda w: sa.getIDsByGroup(w.dataset, assay="RNA")`'

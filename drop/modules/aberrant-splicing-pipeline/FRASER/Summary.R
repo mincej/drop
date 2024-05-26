@@ -67,7 +67,14 @@ plotAberrantPerSample(fds, type=psiTypes,
 #' ## Batch Correlation: samples x samples
 topN <- 30000
 topJ <- 10000
-anno_color_scheme <- brewer.pal(n = 3, name = 'Dark2')[1:2]
+
+# We can have many external datasets. 
+count_dirs <- unique(fds$SPLICE_COUNTS_DIR)
+anno_color_scheme <- brewer.pal(n = length(count_dirs), name = 'Dark2')
+anno_colors <- list()
+for(i in seq_along(count_dirs)){
+  anno_colors[count_dirs[[i]]] = anno_color_scheme[i]
+}
 
 for(type in psiTypes){
   for(normalized in c(F,T)){
@@ -79,14 +86,14 @@ for(type in psiTypes){
       topJ = topJ,
       plotType = "sampleCorrelation",
       normalized = normalized,
-      annotation_col = "isExternal",
+      annotation_col = "SPLICE_COUNTS_DIR",
       annotation_row = NA,
       sampleCluster = NA,
       minDeltaPsi = minDeltaPsi,
       plotMeanPsi = FALSE,
       plotCov = FALSE,
       annotation_legend = TRUE,
-      annotation_colors = list(isExternal = c("FALSE" = anno_color_scheme[1], "TRUE" = anno_color_scheme[2]))
+      annotation_colors = anno_colors
     )
     hm
   }
