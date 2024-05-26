@@ -1,6 +1,6 @@
 from drop import utils
 from .Submodules import Submodule
-from snakemake import logger
+from snakemake.logging import logger
 
 
 class MAE(Submodule):
