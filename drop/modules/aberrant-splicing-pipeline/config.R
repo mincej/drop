@@ -17,7 +17,7 @@ suppressPackageStartupMessages({
   library(rhdf5)
 })
 
-
+print('in config.R')
 ## helper functions
 write_tsv <- function(x, file, row.names = FALSE, ...){
   write.table(x=x, file=file, quote=FALSE, sep='\t', row.names= row.names, ...)

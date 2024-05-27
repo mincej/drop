@@ -2,11 +2,11 @@
 #' title: Filter and clean dataset
 #' author: Christian Mertes
 #' wb:
-<<<<<<< HEAD
 #'   log:
 #'     snakemake: '`sm str(tmp_dir / "AS" / "{dataset}" / "03_filter.log") if config["full_log"] else str(tmp_dir / "AS" / "{dataset}" / "03_filter.Rds")`'
 #'   params:
 #'     setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
+#'     init_ext: '`sm str(projectDir / ".drop" / "helpers" / "init_ext_FRASER_counts.R")`'
 #'     workingDir: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/"`'
 #'     exCountIDs: '`sm lambda w: sa.getIDsByGroup(w.dataset, assay="SPLICE_COUNT")`'
 #'     full_log: '`sm config["full_log"]`'
@@ -32,37 +32,12 @@ if(snakemake@params$full_log){
 } else {
     saveRDS(snakemake, log_file)
 }
-=======
-#'  log:
-#'    - snakemake: '`sm str(tmp_dir / "AS" / "{dataset}" / "03_filter.Rds")`'
-#'  params:
-#'   - setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
-#'   - init_ext_FRASER_counts: '`sm str(projectDir / ".drop" / "helpers" / "init_ext_FRASER_counts.R")`'
-#'   - workingDir: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/"`'
-#'   - localIDs: '`sm lambda w: sa.getIDsByGroup(w.dataset, assay="RNA")`'
-#'   - exCountIDs: '`sm lambda w: sa.getIDsByGroup(w.dataset, assay="SPLICE_COUNT")`'
-#'  input:
-#'   - splice_metrics: '`sm lambda w: expand(cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/savedObjects/raw-local-{dataset}/{type}.h5", type=cfg.AS.getPsiTypeAssay(), allow_missing=True)
-#'                                    if len(sa.getIDsByGroup(w.dataset, assay="RNA")) != 0 else
-#                                     cfg.getProcessedDataDir()`'
-#'   - exCounts: '`sm lambda w: cfg.AS.getExternalCounts(w.dataset, "k_j_counts")`'
-#'  output:
-#'   - fds: '`sm cfg.getProcessedDataDir() +
-#'                  "/aberrant_splicing/datasets/savedObjects/{dataset}/fds-object.RDS"`'
-#'   - done: '`sm expand(cfg.getProcessedDataDir() +
-#'                  "/aberrant_splicing/datasets/savedObjects/{dataset}/filter_{version}.done", version=cfg.AS.get("FRASER_version"), allow_missing=True)`'
-#'  threads: 3
-#'  type: script
-#'---
 
-# if len(sa.getIDsByGroup(w.dataset, assay="RNA")) != 0 else
-# cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/savedObjects/raw-local-{dataset}/n_local.done
-
-saveRDS(snakemake, snakemake@log$snakemake)
->>>>>>> external_onesex
+print('sourcing setup')
 source(snakemake@params$setup, echo=FALSE)
-source(snakemake@params$init_ext_FRASER_counts)
-
+print('sourcing init ext')
+source(snakemake@params$init_ext)
+print('done sourcing')
 opts_chunk$set(fig.width=12, fig.height=8)
 
 # input
@@ -121,8 +96,8 @@ if(length(exCountIDs) > 0){
 } else if(length(localIDs) > 0){
     fds <- loadFraserDataSet(dir=workingDir, name=paste0("raw-local-", dataset))
     message("symLink fraser dir")
-    file.symlink(paste0(workingDir, "savedObjects/","raw-local-", dataset),
-                 paste0(workingDir, "savedObjects/","raw-", dataset))
+    file.symlink(paste0(workingDir, "savedObjects/", "raw-local-", dataset),
+                 paste0(workingDir, "savedObjects/", "raw-", dataset))
     
     fds@colData$isExternal <- as.factor(FALSE)
     workingDir(fds) <- workingDir
