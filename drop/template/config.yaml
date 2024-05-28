@@ -2,7 +2,8 @@ projectTitle: "DROP: Detection of RNA Outliers Pipeline"
 root:             # root directory of all output objects and tables
 htmlOutputPath:   # path for HTML rendered reports
 indexWithFolderName: true # whether the root base name should be part of the index name
-
+stream_to_log: true       # stream all standard output and error to log without streaming to 
+                          # the terminal
 hpoFile: null  # if null, downloads it from webserver
 sampleAnnotation: # path to sample annotation (see documentation on how to create it)
 
