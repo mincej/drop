@@ -1,8 +1,8 @@
 logSinker <- function(snakemake, log_file, stream_arg){
     if(stream_arg == "yes"){
-
-        sink(log_file, type = "output")
-        sink(log_file, type = "message")
+        log <- file(log_file, "wt")
+        sink(log, type = "output")
+        sink(log, type = "message")
         on.exit(sink())
         print(snakemake)
 
@@ -10,16 +10,14 @@ logSinker <- function(snakemake, log_file, stream_arg){
 
         # Output snakemake env without burdening terminal with redundancy. 
         log <- file(log_file, "wt")
-        writeLines(print(snakemake), log)
-        close(log)
+        writeLines(paste0(capture.output(print(snakemake)), "\n"), log)
 
-        sink(log_file, type = "output", split = TRUE)
-        sink(log_file, type = "message")
+        sink(log, type = "output", split = TRUE)
+        sink(log, type = "message")
         on.exit(sink())
-        print(snakemake)
 
     } else {
         saveRDS(snakemake, log_file)
     }
-    
+
 }
