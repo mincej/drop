@@ -1,5 +1,3 @@
-stream_arg <- cfg.get("stream_to_log")
-
 logSinker <- function(snakemake, log_file, stream_arg){
     if(stream_arg == "yes"){
         log <- file(log_file, open = "wt")
