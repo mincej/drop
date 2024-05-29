@@ -131,7 +131,7 @@ class DropConfig:
         config_dict["wBuildPath"] = utils.getWBuildPath()
 
         setKey = utils.setKey
-        setKey(config_dict, None, "stream_to_log", False)
+        setKey(config_dict, None, "stream_to_log", "no")
         setKey(config_dict, None, "fileRegex", r".*\.(R|md)")
         setKey(config_dict, None, "genomeAssembly", "hg19")
 
