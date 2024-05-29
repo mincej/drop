@@ -1,17 +1,25 @@
 logSinker <- function(snakemake, log_file, stream_arg){
     if(stream_arg == "yes"){
-        log <- file(log_file, open = "wt")
 
-        sink(log, type = "output")
-        sink(log, type = "message")
+        sink(log_file, type = "output")
+        sink(log_file, type = "message")
+        on.exit(sink())
         print(snakemake)
+
     } else if (stream_arg == "tee"){
-        log <- file(log_file, open = "wt")
 
-        sink(log, type = "output", split = TRUE)
-        sink(log, type = "message")
+        # Output snakemake env without burdening terminal with redundancy. 
+        log <- file(log_file, "wt")
+        writeLines(print(snakemake), log)
+        close(log)
+
+        sink(log_file, type = "output", split = TRUE)
+        sink(log_file, type = "message")
+        on.exit(sink())
         print(snakemake)
+
     } else {
         saveRDS(snakemake, log_file)
     }
+    
 }
