@@ -9,7 +9,7 @@ logSinker <- function(snakemake, log_file, stream_arg){
         log <- file(log_file, open = "wt")
 
         sink(log, type = "output", split = TRUE)
-        sink(log, type = "message", split = TRUE)
+        sink(log, type = "message")
         print(snakemake)
     } else {
         saveRDS(snakemake, log_file)
