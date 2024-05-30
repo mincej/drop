@@ -1,6 +1,25 @@
 RVC_WORKDIR = cfg.RVC.renameLocalDir()
 RVC_index_input,RVC_graph_file,RVC_index_output = cfg.RVC.getModuleIndexFiles("rvc-pipeline",RVC_WORKDIR)
 
+#https://stackoverflow.com/questions/16461656/how-to-pass-array-as-an-argument-to-a-function-in-bash#:~:text=You%20cannot%20pass%20an%20array%2C%20you%20can%20only%20pass%20its%20elements%20(i.e.%20the%20expanded%20array).
+log_func = """
+    function runScript(){
+        SCRIPT=$1
+        ARGS=$2[@]
+        ARGS=("${!ARGS}")
+        LOG=$3
+        TO_LOG=$4
+
+        if [[ "$TO_LOG" == "yes" ]]; then 
+            $SCRIPT ${ARGS[@]} > $LOG 2>&1
+        elif [[ "$TO_LOG" == "tee" ]]; then
+            $SCRIPT ${ARGS[@]} 2>&1 | tee --append $LOG
+        else
+            $SCRIPT ${ARGS[@]}
+        fi
+    }
+"""
+
 #########
 # Helper Functions
 # #######
@@ -108,9 +127,9 @@ rule split_multiVCF:
             "{sample}.vcf.gz.tbi")
     params:
         sample = "{sample}",
-        ref = lambda wildcards: cfg.RVC.getGenomePath(wildcards.sample),
+        ref = lambda wildcards: cfg.RVC.getGenomePath(wildcards.sample)
     log:
-        str(cfg.processedDataDir) + "/rnaVariantCalling/logs/sample_vcfs/{sample}.single_vcf.log"
+        str(tmp_dir) + "/RNAVAR/sample_vcfs/{sample}.single_vcf.log"
     shell:
         """
         echo "reading multi-sample vcf into single sample vcf"
@@ -128,6 +147,8 @@ rule sortIndexRepeatMask:
     output:
         sorted_repeat_mask = getRepeatMask(sortedName = True),
         sorted_index = getRepeatMask(sortedName = True) + ".idx"
+    log:
+        str(tmp_dir) + "/RNAVAR/sort_repeat_mask.log"
     shell:
         """
         sort -k1,2 -V {input.repeat_mask} > {output.sorted_repeat_mask}
@@ -154,7 +175,9 @@ rule simpleAnnotateVCF:
             cfg.processedResultsDir,
             "rnaVariantCalling/batch_vcfs",
             "{dataset}",
-            "{dataset}_{annotation}.annotated.vcf.gz.tbi"),
+            "{dataset}_{annotation}.annotated.vcf.gz.tbi")
+    log:
+        str(tmp_dir) + "/RNAVAR/annotate_vcf/{dataset}--{annotation}.log"
     shell:
         """
         {input.script} {input.vcf} {input.gtf} {output.vcf}
@@ -190,7 +213,7 @@ rule maskMultiVCF:
     params:
         ref = lambda wildcards: cfg.RVC.getGenomePath(wildcards.dataset),
     log:
-        str(cfg.processedDataDir) + "/rnaVariantCalling/logs/all_haplocaller/{dataset}_mask.log"
+        str(tmp_dir) + "/RNAVAR/all_haplocaller/{dataset}_mask.log"
     shell:
         """
         {input.script} {input.vcf} {input.repeat_mask} {params.ref} {resources.tmpdir} {log} {output.vcf}
@@ -225,7 +248,7 @@ rule leftNormalVCF:
     params:
         ref = lambda wildcards: cfg.RVC.getGenomePath(wildcards.dataset)
     log:
-        str(cfg.processedDataDir) + "/rnaVariantCalling/logs/all_haplocaller/{dataset}_split_norm.log"
+        str(tmp_dir) + "/RNAVAR/all_haplocaller/{dataset}_split_norm.log"
     shell:
         """
         bcftools norm -m-both {input.vcf} | grep -v -w "*" |  \
@@ -272,7 +295,7 @@ rule filterVCF:
         ref = lambda wildcards: cfg.RVC.getGenomePath(wildcards.dataset),
         minAlt = getMinAlt()
     log:
-        str(cfg.processedDataDir) + "/rnaVariantCalling/logs/all_haplocaller/{dataset}_filterVariants.log"
+        str(tmp_dir) + "/RNAVAR/all_haplocaller/{dataset}_filterVariants.log"
     shell:
         """
         # filter any sample for the 2nd AD field (ALT), if any pass filter mark PASS else mark minALT
@@ -316,7 +339,7 @@ rule genotypeGVCFs:
     params:
         ref = lambda wildcards: cfg.RVC.getGenomePath(wildcards.dataset),
     log:
-        str(cfg.processedDataDir) + "/rnaVariantCalling/logs/all_haplocaller/{dataset}_genotypeGVCFs.log"
+        str(tmp_dir) + "/RNAVAR/all_haplocaller/{dataset}_genotypeGVCFs.log"
     shell:
         """
         gatk --java-options "-Djava.io.tmpdir={resources.tmpdir}" GenotypeGVCFs \
@@ -359,7 +382,7 @@ rule combineGVCFs:
             "{sample}.g.vcf.gz"
             ), sample = sa.getIDsByGroup(wildcards.dataset))]
     log:
-        str(cfg.processedDataDir) + "/rnaVariantCalling/logs/all_haplocaller/{dataset}_combineGVCF.log"
+        str(tmp_dir) + "/RNAVAR/all_haplocaller/{dataset}_combineGVCF.log"
     shell:
         """
         gatk --java-options "-Djava.io.tmpdir={resources.tmpdir}" CombineGVCFs \
@@ -394,7 +417,7 @@ rule haplotypeCaller:
         hcArgs = getHaploCallerArgs(),
         dbSNP = getKnownVCFs(dbSNP_only = True)
     log:
-        str(cfg.processedDataDir) + "/rnaVariantCalling/logs/all_haplocaller/{sample}.log"
+        str(tmp_dir) + "/RNAVAR/all_haplocaller/{sample}.log"
     shell:
         """
         {input.script} {input.bam} {input.bai} \
@@ -433,7 +456,7 @@ rule applyBQSR:
     params:
         ref = lambda wildcards: cfg.RVC.getGenomePath(wildcards.sample),
     log:
-        str(cfg.processedDataDir) + "/rnaVariantCalling/logs/applyBQSR/{sample}.log"
+        str(tmp_dir) + "/RNAVAR/applyBQSR/{sample}.log"
     shell:
         """
         gatk --java-options "-Djava.io.tmpdir={resources.tmpdir}" ApplyBQSR  \
@@ -467,7 +490,7 @@ rule bqsr:
         ucsc2ncbi = cfg.workDir / "Scripts/Pipeline/chr_UCSC_NCBI.txt",
         ncbi2ucsc = cfg.workDir / "Scripts/Pipeline/chr_NCBI_UCSC.txt"
     log:
-        str(cfg.processedDataDir) + "/rnaVariantCalling/logs/bqsr/{sample}.log"
+        str(tmp_dir) + "/RNAVAR/bqsr/{sample}.log"
     shell:
         """
         {input.script} {input.bam} {input.bai} \
@@ -505,7 +528,7 @@ rule splitNcigar:
     params:
         ref = lambda wildcards: cfg.RVC.getGenomePath(wildcards.sample)
     log:
-        str(cfg.processedDataDir) + "/rnaVariantCalling/logs/splitNcigar/{sample}.log"
+        str(tmp_dir) + "/RNAVAR/splitNcigar/{sample}.log"
     shell:
         """
         gatk --java-options "-Djava.io.tmpdir={resources.tmpdir}" SplitNCigarReads \
@@ -535,6 +558,8 @@ rule reorderBAM:
             "rnaVariantCalling/out/bam",
             "{sample}",
             "{sample}_Aligned.sortedByCoord.dupMarked.FAorder.out.bai"))
+    log:
+        str(tmp_dir) + "/RNAVAR/reorder_bam/{sample}.log"
     shell:
         """
         echo "ReorderSam"
@@ -569,7 +594,7 @@ rule markDuplicates:
     params:
         metrics = os.path.join( cfg.processedDataDir, "rnaVariantCalling/out/picard-tools-marked-dup-metrics.txt"),
     log:
-        str(cfg.processedDataDir) + "/rnaVariantCalling/logs/markDuplicates/{sample}.log"
+        str(tmp_dir) + "/RNAVAR/markDuplicates/{sample}.log"
     shell:
         """
         gatk MarkDuplicates \
@@ -605,8 +630,7 @@ rule sortBam:
             "{sample}",
             "{sample}_Aligned.sortedByCoord.out.bam.bai"))
     log:
-        str(cfg.processedDataDir) + "/rnaVariantCalling/logs/sortBam/{sample}.log"
-
+        str(tmp_dir) + "/RNAVAR/sortBam/{sample}.log"
     shell:
         """
         samtools sort {input.bam} -O BAM -o {output.bam} &> {log}
@@ -639,7 +663,7 @@ rule changeHeader:
     params:
         sample="{sample}"
     log:
-        str(cfg.processedDataDir) + "/rnaVariantCalling/logs/changeHeader/{sample}.log"
+        str(tmp_dir) + "/RNAVAR/changeHeader/{sample}.log"
     shell:
         """
         {input.script} {input.bam} {input.bai} {params.sample} {log} \
