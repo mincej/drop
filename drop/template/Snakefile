@@ -7,6 +7,7 @@ from wbuild.createIndex import ci
 projectDir = Path.cwd().resolve()
 drop.checkDropVersion(projectDir)
 _, projectPaths = drop.setupPaths(projectDir)
+drop_dir = projectPaths["dropDir"]
 tmp_dir = projectPaths["tmpDir"]
 bench_dir = projectPaths["benchDir"]
 

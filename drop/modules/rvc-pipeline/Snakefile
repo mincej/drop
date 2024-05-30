@@ -1,3 +1,7 @@
+import sys
+sys.path.append(str(drop_dir) + "/helpers")
+from log_funcs import log_code
+
 RVC_WORKDIR = cfg.RVC.renameLocalDir()
 RVC_index_input,RVC_graph_file,RVC_index_output = cfg.RVC.getModuleIndexFiles("rvc-pipeline",RVC_WORKDIR)
 
@@ -108,17 +112,23 @@ rule split_multiVCF:
             "{sample}.vcf.gz.tbi")
     params:
         sample = "{sample}",
-        ref = lambda wildcards: cfg.RVC.getGenomePath(wildcards.sample)
+        ref = lambda wildcards: cfg.RVC.getGenomePath(wildcards.sample),
+        log_func = log_code
     log:
         str(tmp_dir) + "/RNAVAR/sample_vcfs/{sample}.single_vcf.log"
     shell:
         """
-        echo "reading multi-sample vcf into single sample vcf"
+        {params.log_func}
+        
+        function block(){{
+            echo "reading multi-sample vcf into single sample vcf"
 
-        bcftools view -c1 -Ov -s {params.sample} {input} | \
-        grep -w -v "*"|grep -w -v "0/0" |bgzip -c > {output.vcf}
-        tabix -f -p vcf {output.vcf}
+            bcftools view -c1 -Ov -s {params.sample} {input} | \
+            grep -w -v "*"|grep -w -v "0/0" |bgzip -c > {output.vcf}
+            tabix -f -p vcf {output.vcf}
+        }} 
 
+        logCode {log} block
         """
 
 #sort the Repeat Mask index
