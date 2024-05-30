@@ -32,17 +32,16 @@ log_script = stream_info + """
 
 log_code = stream_info + """
 
-    function logCode(){
-        CODE=$1[@]
-        CODE=("${!CODE}")
+    function logFunc(){
+        FUNC=$1
         LOG=$2
         
         if [[ "$TO_LOG" == "yes" ]]; then 
-            ${CODE[@]} > $LOG 2>&1
+            $FUNC > $LOG 2>&1
         elif [[ "$TO_LOG" == "tee" ]]; then 
-            ${CODE[@]} 2>&1 | tee --append $LOG
+            $FUNC 2>&1 | tee --append $LOG
         else
-            ${CODE[@]}
+            $FUNC
     }
 
 """
