@@ -1,6 +1,25 @@
 MAE_WORKDIR = cfg.MAE.renameLocalDir()
 MAE_index_input,MAE_graph_file,MAE_index_output = cfg.MAE.getModuleIndexFiles("mae-pipeline",MAE_WORKDIR)
 
+#https://stackoverflow.com/questions/16461656/how-to-pass-array-as-an-argument-to-a-function-in-bash#:~:text=You%20cannot%20pass%20an%20array%2C%20you%20can%20only%20pass%20its%20elements%20(i.e.%20the%20expanded%20array).
+log_func = """
+    function runScript(){
+        SCRIPT=$1
+        ARGS=$2[@]
+        ARGS=("${!ARGS}")
+        LOG=$3
+        TO_LOG=$4
+
+        if [[ "$TO_LOG" == "yes" ]]; then 
+            $SCRIPT ${ARGS[@]} > $LOG 2>&1
+        elif [[ "$TO_LOG" == "tee" ]]; then
+            $SCRIPT ${ARGS[@]} 2>&1 | tee --append $LOG
+        else
+            $SCRIPT ${ARGS[@]}
+        fi
+    }
+"""
+
 rule mae:
     input:  MAE_index_input,MAE_graph_file
     output: MAE_index_output
@@ -33,14 +52,22 @@ rule mae_createSNVs:
     output:
         snvs_filename = cfg.processedDataDir / "mae" / "snvs" / "{vcf}--{rna}.vcf.gz",
         snvs_index = cfg.processedDataDir / "mae" / "snvs" / "{vcf}--{rna}.vcf.gz.tbi"
+    log:
+        str(tmp_dir) + "/MAE/snvs/{vcf}--{rna}.log"
     params:
         bcftools = cfg.getTool("bcftoolsCmd"),
-        samtools = cfg.getTool("samtoolsCmd")
+        samtools = cfg.getTool("samtoolsCmd"),
+        to_log = cfg.get("stream_to_log"),
+        log_func = log_func
     shell:
         """
-        {input.script} {input.ncbi2ucsc} {input.ucsc2ncbi} {input.vcf_file} \
+        PACK=( {input.ncbi2ucsc} {input.ucsc2ncbi} {input.vcf_file} \
         {wildcards.vcf} {input.bam_file} {output.snvs_filename} \
-        {params.bcftools} {params.samtools}
+        {params.bcftools} {params.samtools} )
+
+        {params.log_func}
+
+        runScript {input.script} PACK {log} {params.to_log}
         """
 
 rule mae_allelicCounts:
@@ -58,11 +85,20 @@ rule mae_allelicCounts:
         bcftools = cfg.getTool("bcftoolsCmd"),
         samtools = cfg.getTool("samtoolsCmd"),
         gatk = cfg.getTool("gatkCmd"),
-        gatkIgnoreHeaderCheck = cfg.MAE.get("gatkIgnoreHeaderCheck")
+        gatkIgnoreHeaderCheck = cfg.MAE.get("gatkIgnoreHeaderCheck"),
+        to_log = cfg.get("stream_to_log"),
+        log_func = log_func
+    log:
+        str(tmp_dir) + "/MAE/allelic_counts/{vcf}--{rna}.log"
     shell:
         """
-        {input.script} {input.ncbi2ucsc} {input.ucsc2ncbi} \
+        PACK=( {input.ncbi2ucsc} {input.ucsc2ncbi} \
         {input.vcf_file} {input.bam_file} {wildcards.vcf}--{wildcards.rna} \
         {input.fasta} {params.gatkIgnoreHeaderCheck} {output.counted} \
-        {params.bcftools} {params.samtools} {params.gatk}
+        {params.bcftools} {params.samtools} {params.gatk} ) 
+
+        {params.log_func}
+
+        runScript {input.script} PACK {log} {params.to_log}
+
         """
