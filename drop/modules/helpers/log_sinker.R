@@ -19,5 +19,4 @@ logSinker <- function(snakemake, log_file, stream_arg){
     } else {
         saveRDS(snakemake, log_file)
     }
-
 }
