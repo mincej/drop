@@ -2,21 +2,25 @@
 #' title: Count reads
 #' author: Michaela Mueller
 #' wb:
-#'  log:
-#'    snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "counts" / "{sampleID}.Rds")`'
-#'  params:
-#'   - COUNT_PARAMS: '`sm lambda w: cfg.AE.getCountParams(w.sampleID)`'
-#'  input:
-#'   - sample_bam: '`sm lambda w: sa.getFilePath(w.sampleID, file_type="RNA_BAM_FILE") `'
-#'   - count_ranges: '`sm cfg.getProcessedDataDir() + "/aberrant_expression/{annotation}/count_ranges.Rds" `'
-#'   - input_params: '`sm cfg.getProcessedDataDir() + "/aberrant_expression/{annotation}/params/counts/{sampleID}_countParams.csv" `'
-#'  output:
-#'   - counts: '`sm cfg.getProcessedDataDir() + "/aberrant_expression/{annotation}/counts/{sampleID,[^/]+}.Rds"`'
-#'  type: script
-#'  threads: 1
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "counts" / "{sampleID}.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "AE" / "{annotation}" / "counts" / "{sampleID}.Rds")`'
+#'   params:
+#'     COUNT_PARAMS: '`sm lambda w: cfg.AE.getCountParams(w.sampleID)`'
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'   input:
+#'     sample_bam: '`sm lambda w: sa.getFilePath(w.sampleID, file_type="RNA_BAM_FILE") `'
+#'     count_ranges: '`sm cfg.getProcessedDataDir() + "/aberrant_expression/{annotation}/count_ranges.Rds" `'
+#'     input_params: '`sm cfg.getProcessedDataDir() + "/aberrant_expression/{annotation}/params/counts/{sampleID}_countParams.csv" `'
+#'   output:
+#'     counts: '`sm cfg.getProcessedDataDir() + "/aberrant_expression/{annotation}/counts/{sampleID,[^/]+}.Rds"`'
+#'   type: script
+#'   threads: 1
+#'   benchmark: '`sm str(bench_dir / "AE" / "{annotation}" / "counts" / "{sampleID}.txt")`'
 #'---
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 
 suppressPackageStartupMessages({
   library(data.table)

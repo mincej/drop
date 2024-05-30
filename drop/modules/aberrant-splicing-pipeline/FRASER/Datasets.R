@@ -1,17 +1,19 @@
 #'---
 #' title: Full FRASER analysis over all datasets
 #' wb:
-#'  log:
-#'    - snakemake: '`sm str(tmp_dir / "AS" / "FRASER_datasets.Rds")`'
-#'  input:
-#'   - fraser_summary: '`sm expand(config["htmlOutputPath"] + 
-#'                     "/AberrantSplicing/{dataset}--{annotation}_summary.html", 
-#'                     annotation=cfg.genome.getGeneVersions(), dataset=cfg.AS.groups)`'
-#' output:
-#'  html_document
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "AS" / "FRASER_datasets.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "AS" / "FRASER_datasets.Rds")`'
+#'   input:
+#'     fraser_summary: '`sm expand(config["htmlOutputPath"] + "/AberrantSplicing/{dataset}--{annotation}_summary.html", annotation=cfg.genome.getGeneVersions(), dataset=cfg.AS.groups)`'
+#'   params:
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'   benchmark: '`sm str(bench_dir / "AS" / "FRASER_datasets.txt")`'
+#' output: html_document
 #'---
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 
 # Obtain the annotations and datasets
 datasets <- snakemake@config$aberrantSplicing$groups

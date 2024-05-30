@@ -2,20 +2,22 @@
 #' title: Filter Counts for OUTRIDER
 #' author: Michaela Mueller
 #' wb:
-#'  log:
-#'   - snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "filter.Rds")`'
-#'  input:
-#'   - counts: '`sm cfg.getProcessedDataDir() +
-#'              "/aberrant_expression/{annotation}/outrider/{dataset}/total_counts.Rds"`'
-#'   - txdb: '`sm cfg.getProcessedDataDir() +
-#'            "/preprocess/{annotation}/txdb.db"`'
-#'  output:
-#'   - ods: '`sm cfg.getProcessedResultsDir() +
-#'           "/aberrant_expression/{annotation}/outrider/{dataset}/ods_unfitted.Rds"`'
-#'  type: script
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "filter.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "filter.Rds")`'
+#'   input:
+#'     counts: '`sm cfg.getProcessedDataDir() + "/aberrant_expression/{annotation}/outrider/{dataset}/total_counts.Rds"`'
+#'     txdb: '`sm cfg.getProcessedDataDir() + "/preprocess/{annotation}/txdb.db"`'
+#'   output:
+#'     ods: '`sm cfg.getProcessedResultsDir() + "/aberrant_expression/{annotation}/outrider/{dataset}/ods_unfitted.Rds"`'
+#'   type: script
+#'   params:
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'   benchmark: '`sm str(bench_dir / "AE" / "{annotation}" / "{dataset}" / "filter.txt")`'
 #'---
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 
 suppressPackageStartupMessages({
     library(data.table)

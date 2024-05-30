@@ -2,18 +2,22 @@
 #' title: DNA-RNA matching matrix
 #' author: vyepez
 #' wb:
-#'  log:
-#'   - snakemake: '`sm str(tmp_dir / "MAE" / "{dataset}" / "QC_matrix_plot.Rds")`'
-#'  input:
-#'    - mat_qc: '`sm cfg.getProcessedResultsDir() + 
-#'               "/mae/{dataset}/dna_rna_qc_matrix.Rds"`'
-#'  output:
-#'    - wBhtml: '`sm config["htmlOutputPath"] + "/MonoallelicExpression/QC/{dataset}.html"`'
-#'  type: noindex
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "MAE" / "{dataset}" / "QC_matrix_plot.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "MAE" / "{dataset}" / "QC_matrix_plot.Rds")`'
+#'   input:
+#'     mat_qc: '`sm cfg.getProcessedResultsDir() + "/mae/{dataset}/dna_rna_qc_matrix.Rds"`'
+#'   output:
+#'     wBhtml: '`sm config["htmlOutputPath"] + "/MonoallelicExpression/QC/{dataset}.html"`'
+#'   type: noindex
+#'   params:
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'   benchmark: '`sm str(bench_dir / "MAE" / "{dataset}" / "QC_matrix_plot.txt")`'
 #'---
 
 #+ echo=F
-saveRDS(snakemake, snakemake@log$snakemake)
+
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 
 suppressPackageStartupMessages({
   library(reshape2)

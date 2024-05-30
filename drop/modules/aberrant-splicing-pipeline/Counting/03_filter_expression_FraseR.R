@@ -2,26 +2,27 @@
 #' title: Filter and clean dataset
 #' author: Christian Mertes
 #' wb:
-#'  log:
-#'    - snakemake: '`sm str(tmp_dir / "AS" / "{dataset}" / "03_filter.Rds")`'
-#'  params:
-#'   - setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
-#'   - workingDir: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/"`'
-#'   - exCountIDs: '`sm lambda w: sa.getIDsByGroup(w.dataset, assay="SPLICE_COUNT")`'
-#'  input:
-#'   - splice_metrics: '`sm expand(cfg.getProcessedDataDir() +
-#'                  "/aberrant_splicing/datasets/savedObjects/raw-local-{dataset}/{type}.h5", type=cfg.AS.getPsiTypeAssay(), allow_missing=True)`'
-#'   - exCounts: '`sm lambda w: cfg.AS.getExternalCounts(w.dataset, "k_j_counts")`'
-#'  output:
-#'   - fds: '`sm cfg.getProcessedDataDir() +
-#'                  "/aberrant_splicing/datasets/savedObjects/{dataset}/fds-object.RDS"`'
-#'   - done: '`sm expand(cfg.getProcessedDataDir() +
-#'                  "/aberrant_splicing/datasets/savedObjects/{dataset}/filter_{version}.done", version=cfg.AS.get("FRASER_version"), allow_missing=True)`'
-#'  threads: 3
-#'  type: script
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "AS" / "{dataset}" / "03_filter.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "AS" / "{dataset}" / "03_filter.Rds")`'
+#'   params:
+#'     setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
+#'     workingDir: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/"`'
+#'     exCountIDs: '`sm lambda w: sa.getIDsByGroup(w.dataset, assay="SPLICE_COUNT")`'
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'   input:
+#'     splice_metrics: '`sm expand(cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/savedObjects/raw-local-{dataset}/{type}.h5", type=cfg.AS.getPsiTypeAssay(), allow_missing=True)`'
+#'     exCounts: '`sm lambda w: cfg.AS.getExternalCounts(w.dataset, "k_j_counts")`'
+#'   output:
+#'     fds: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/savedObjects/{dataset}/fds-object.RDS"`'
+#'     done: '`sm expand(cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/savedObjects/{dataset}/filter_{version}.done", version=cfg.AS.get("FRASER_version"), allow_missing=True)`'
+#'   threads: 3
+#'   type: script
+#'   benchmark: '`sm str(bench_dir / "AS" / "{dataset}" / "03_filter.txt")`'
 #'---
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 source(snakemake@params$setup, echo=FALSE)
 
 opts_chunk$set(fig.width=12, fig.height=8)

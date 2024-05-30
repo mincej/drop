@@ -1,23 +1,27 @@
 #'---
 #' title: Sample Annotation Overview
-#' author:
+#' author: null
 #' wb:
-#'  log:
-#'   - snakemake: '`sm str(tmp_dir / "SampleAnnotation.Rds")`'
-#'  params:
-#'   - hpoFile: '`sm cfg.get("hpoFile")`'
-#'  input: 
-#'   - sampleAnnotation: '`sm sa.file`'
-#'  output:
-#'   - hpoOverlap: '`sm touch(cfg.getProcessedDataDir() + "/sample_anno/genes_overlapping_HPO_terms.tsv")`'
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "SampleAnnotation.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "SampleAnnotation.Rds")`'
+#'   params:
+#'     hpoFile: '`sm cfg.get("hpoFile")`'
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'   input:
+#'     sampleAnnotation: '`sm sa.file`'
+#'   output:
+#'     hpoOverlap: '`sm touch(cfg.getProcessedDataDir() + "/sample_anno/genes_overlapping_HPO_terms.tsv")`'
+#'   benchmark: '`sm str(bench_dir / "SampleAnnotation.txt")`'
 #' output:
 #'   html_document:
-#'    code_folding: hide
-#'    code_download: TRUE
+#'     code_folding: hide
+#'     code_download: true
 #'---
 
 #+ echo=F
-saveRDS(snakemake, snakemake@log$snakemake)
+
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 
 suppressPackageStartupMessages({
   library(data.table)

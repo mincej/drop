@@ -2,17 +2,21 @@
 #' title: Merge Nonsplit Counts
 #' author: Luise Schuller
 #' wb:
-#'  log:
-#'    - snakemake: '`sm str(tmp_dir / "AS" / "{dataset}" / "01_4_nonSplitReadsMerge.Rds")`'
-#'  params:
-#'   - setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
-#'   - workingDir: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets"`'
-#'  threads: 20
-#'  input:
-#'   - sample_counts:  '`sm lambda w: cfg.AS.getNonSplitCountFiles(w.dataset)`'
-#'   - gRangesNonSplitCounts: '`sm cfg.getProcessedDataDir() + 
-#'                          "/aberrant_splicing/datasets/cache/raw-local-{dataset}/gRanges_NonSplitCounts.rds"`'
-#'  output:
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "AS" / "{dataset}" / "01_4_nonSplitReadsMerge.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "AS" / "{dataset}" / "01_4_nonSplitReadsMerge.Rds")`'
+#'   params:
+#'     setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
+#'     workingDir: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets"`'
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'   threads: 20
+#'   input:
+#'     sample_counts: '`sm lambda w: cfg.AS.getNonSplitCountFiles(w.dataset)`'
+#'     gRangesNonSplitCounts: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/cache/raw-local-{dataset}/gRanges_NonSplitCounts.rds"`'
+#'   output:
+#'     done: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/savedObjects/raw-local-{dataset}/merge_theta.done"`'
+#'   type: script
+#'   benchmark: '`sm str(bench_dir / "AS" / "{dataset}" / "01_4_nonSplitReadsMerge.txt")`'
+#'---
 ###   - countsSS: '`sm cfg.getProcessedDataDir() +
 ###                   "/aberrant_splicing/datasets/savedObjects/raw-local-{dataset}/rawCountsSS.h5"`'
 #'   - done:     '`sm cfg.getProcessedDataDir() + 
@@ -20,7 +24,9 @@
 #'  type: script
 #'---
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 source(snakemake@params$setup, echo=FALSE)
 
 dataset    <- snakemake@wildcards$dataset

@@ -1,19 +1,20 @@
 #'---
 #' title: VCF-BAM Matching Analysis over All Datasets
-#' author: 
+#' author: null
 #' wb:
-#'  log:
-#'   - snakemake: '`sm str(tmp_dir / "MAE" / "QC_overview.Rds")`'
-#'  input:
-#'   - html: '`sm expand(
-#'             config["htmlOutputPath"] + "/MonoallelicExpression/QC/{dataset}.html",
-#'             dataset=cfg.MAE.qcGroups
-#'      )`'
-#' output:
-#'  html_document
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "MAE" / "QC_overview.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "MAE" / "QC_overview.Rds")`'
+#'   input:
+#'     html: '`sm expand( config["htmlOutputPath"] + "/MonoallelicExpression/QC/{dataset}.html", dataset=cfg.MAE.qcGroups )`'
+#'   params:
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'   benchmark: '`sm str(bench_dir / "MAE" / "QC_overview.txt")`'
+#' output: html_document
 #'---
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 
 # Obtain the datasets
 datasets <- snakemake@config$mae$qcGroups 

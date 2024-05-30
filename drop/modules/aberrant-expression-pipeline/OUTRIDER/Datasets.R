@@ -2,19 +2,22 @@
 #' title: Results Overview
 #' author: mumichae
 #' wb:
-#'  log:
-#'   - snakemake: '`sm str(tmp_dir / "AE" / "OUTRIDER_Overview.Rds")`'
-#'  input:
-#'    - summaries: '`sm expand(config["htmlOutputPath"] + 
-#'                 "/AberrantExpression/Outrider/{annotation}/Summary_{dataset}.html",
-#'                 annotation=cfg.genome.getGeneVersions(), dataset=cfg.AE.groups)`'
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "AE" / "OUTRIDER_Overview.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "AE" / "OUTRIDER_Overview.Rds")`'
+#'   input:
+#'     summaries: '`sm expand(config["htmlOutputPath"] + "/AberrantExpression/Outrider/{annotation}/Summary_{dataset}.html", annotation=cfg.genome.getGeneVersions(), dataset=cfg.AE.groups)`'
+#'   params:
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'   benchmark: '`sm str(bench_dir / "AE" / "OUTRIDER_Overview.txt")`'
 #' output:
 #'   html_document:
-#'    code_folding: hide
-#'    code_download: TRUE
+#'     code_folding: hide
+#'     code_download: true
 #'---
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 
 # Obtain the annotations and datasets
 datasets <- snakemake@config$aberrantExpression$groups 

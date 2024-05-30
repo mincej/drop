@@ -1,30 +1,29 @@
 #'---
 #' title: Aberrant Expression
-#' author:
+#' author: null
 #' wb:
-#'  log:
-#'    - snakemake: '`sm str(tmp_dir / "AE" / "Overview.Rds")`'
-#'  params:
-#'    - annotations: '`sm cfg.genome.getGeneVersions()`'
-#'    - datasets: '`sm cfg.AE.groups`'
-#'    - htmlDir: '`sm config["htmlOutputPath"] + "/AberrantExpression"`'
-#'  input:
-#'    - functions: '`sm cfg.workDir / "Scripts/html_functions.R"`'
-#'    - odsFiles: '`sm expand(cfg.getProcessedResultsDir() +
-#'                  "/aberrant_expression/{annotation}/outrider/{dataset}/ods.Rds",
-#'                  annotation=cfg.genome.getGeneVersions(), dataset=cfg.AE.groups)`'
-#'    - resultTables: '`sm expand(cfg.getProcessedResultsDir() +
-#'                      "/aberrant_expression/{annotation}/outrider/" +
-#'                      "{dataset}/OUTRIDER_results.tsv",
-#'                      annotation=cfg.genome.getGeneVersions(), dataset=cfg.AE.groups)`'
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "AE" / "Overview.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "AE" / "Overview.Rds")`'
+#'   params:
+#'     annotations: '`sm cfg.genome.getGeneVersions()`'
+#'     datasets: '`sm cfg.AE.groups`'
+#'     htmlDir: '`sm config["htmlOutputPath"] + "/AberrantExpression"`'
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'   input:
+#'     functions: '`sm cfg.workDir / "Scripts/html_functions.R"`'
+#'     odsFiles: '`sm expand(cfg.getProcessedResultsDir() + "/aberrant_expression/{annotation}/outrider/{dataset}/ods.Rds", annotation=cfg.genome.getGeneVersions(), dataset=cfg.AE.groups)`'
+#'     resultTables: '`sm expand(cfg.getProcessedResultsDir() + "/aberrant_expression/{annotation}/outrider/" + "{dataset}/OUTRIDER_results.tsv", annotation=cfg.genome.getGeneVersions(), dataset=cfg.AE.groups)`'
+#'   benchmark: '`sm str(bench_dir / "AE" / "Overview.txt")`'
 #' output:
 #'   html_document:
-#'    code_folding: show
-#'    code_download: TRUE
+#'     code_folding: show
+#'     code_download: true
 #'---
 
 #+ include=FALSE
-saveRDS(snakemake, snakemake@log$snakemake)
+
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 source(snakemake@input$functions)
 
 #+ eval=TRUE, echo=FALSE

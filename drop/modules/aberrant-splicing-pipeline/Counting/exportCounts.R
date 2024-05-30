@@ -2,10 +2,20 @@
 #' title: Collect all counts from FRASER Object
 #' author: mumichae, vyepez, c-mertes
 #' wb:
-#'  log:
-#'    - snakemake: '`sm str(tmp_dir / "AS" / "{dataset}" / "{genomeAssembly}--{annotation}_export.Rds")`'
-#'  params:
-#'   - setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "AS" / "{dataset}" / "{genomeAssembly}--{annotation}_export.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "AS" / "{dataset}" / "{genomeAssembly}--{annotation}_export.Rds")`'
+#'   params:
+#'     setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'   input:
+#'     annotation: '`sm cfg.getProcessedDataDir() + "/preprocess/{annotation}/txdb.db"`'
+#'     fds_theta: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/savedObjects/raw-local-{dataset}/theta.h5"`'
+#'   output:
+#'     k_counts: '`sm expand(cfg.exportCounts.getFilePattern(str_=True, expandStr=True) + "/k_{metric}_counts.tsv.gz", metric=["j", "theta"])`'
+#'     n_counts: '`sm expand(cfg.exportCounts.getFilePattern(str_=True, expandStr=True) + "/n_{metric}_counts.tsv.gz", metric=["psi5", "psi3", "theta"])`'
+#'   type: script
+#'   benchmark: '`sm str(bench_dir / "AS" / "{dataset}" / "{genomeAssembly}--{annotation}_export.txt")`'
+#'---
 
 #'  input:
 #'   - annotation: '`sm cfg.getProcessedDataDir() + "/preprocess/{annotation}/txdb.db"`'
@@ -17,7 +27,9 @@
 #'  type: script
 #'---
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 source(snakemake@params$setup, echo=FALSE)
 
 library(AnnotationDbi)

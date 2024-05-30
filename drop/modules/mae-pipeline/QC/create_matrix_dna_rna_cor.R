@@ -2,21 +2,23 @@
 #' title: Create QC matrix
 #' author: vyepez
 #' wb:
-#'  log:
-#'   - snakemake: '`sm str(tmp_dir / "MAE" / "{dataset}" / "QC_matrix.Rds")`'
-#'  params:
-#'    - rnaIds: '`sm lambda w: sa.getIDsByGroup(w.dataset, assay="RNA")`'
-#'  input: 
-#'    - mae_res: '`sm lambda w: expand(cfg.getProcessedDataDir() +
-#'                "/mae/RNA_GT/{rna}.Rds", rna=sa.getIDsByGroup(w.dataset, assay="RNA"))`'
-#'  output:
-#'    - mat_qc: '`sm cfg.getProcessedResultsDir() + 
-#'               "/mae/{dataset}/dna_rna_qc_matrix.Rds"`'
-#'  threads: 20
-#'  type: script
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "MAE" / "{dataset}" / "QC_matrix.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "MAE" / "{dataset}" / "QC_matrix.Rds")`'
+#'   params:
+#'     rnaIds: '`sm lambda w: sa.getIDsByGroup(w.dataset, assay="RNA")`'
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'   input:
+#'     mae_res: '`sm lambda w: expand(cfg.getProcessedDataDir() + "/mae/RNA_GT/{rna}.Rds", rna=sa.getIDsByGroup(w.dataset, assay="RNA"))`'
+#'   output:
+#'     mat_qc: '`sm cfg.getProcessedResultsDir() + "/mae/{dataset}/dna_rna_qc_matrix.Rds"`'
+#'   threads: 20
+#'   type: script
+#'   benchmark: '`sm str(bench_dir / "MAE" / "{dataset}" / "QC_matrix.txt")`'
 #'---
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 
 suppressPackageStartupMessages({
   library(VariantAnnotation)

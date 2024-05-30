@@ -2,19 +2,22 @@
 #' title: RVC datasets
 #' author: nickhsmith
 #' wb:
-#'  log:
-#'   - snakemake: '`sm str(tmp_dir / "RVC" / "RVC_Datasets.Rds")`'
-#'  input:
-#'    - summaries: '`sm expand(config["htmlOutputPath"] + 
-#'                 "/rnaVariantCalling/{annotation}/Summary_{dataset}.html",
-#'                 annotation=cfg.genome.getGeneVersions(), dataset=cfg.RVC.groups)`'
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "RVC" / "RVC_Datasets.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "RVC" / "RVC_Datasets.Rds")`'
+#'   input:
+#'     summaries: '`sm expand(config["htmlOutputPath"] + "/rnaVariantCalling/{annotation}/Summary_{dataset}.html", annotation=cfg.genome.getGeneVersions(), dataset=cfg.RVC.groups)`'
+#'   params:
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'   benchmark: '`sm str(bench_dir / "RVC" / "RVC_Datasets.txt")`'
 #' output:
 #'   html_document:
-#'    code_folding: hide
-#'    code_download: TRUE
+#'     code_folding: hide
+#'     code_download: true
 #'---
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 
 # Obtain the annotations and datasets
 datasets <- snakemake@config$rnaVariantCalling$groups 

@@ -2,19 +2,23 @@
 #' title: Preprocess Gene Annotations
 #' author: mumichae
 #' wb:
-#'  log:
-#'   - snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "preprocess.Rds")`'
-#'  input:
-#'   - gtf: '`sm lambda wildcards: cfg.genome.getGeneAnnotationFile(wildcards.annotation) `'
-#'  output:
-#'   - txdb: '`sm cfg.getProcessedDataDir() + "/preprocess/{annotation}/txdb.db"`'
-#'   - gene_name_mapping: '`sm cfg.getProcessedDataDir() + "/preprocess/{annotation}/gene_name_mapping_{annotation}.tsv"`'
-#'   - count_ranges: '`sm cfg.getProcessedDataDir() + 
-#'                    "/aberrant_expression/{annotation}/count_ranges.Rds" `'
-#'  type: script
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "preprocess.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "AE" / "{annotation}" / "preprocess.Rds")`'
+#'   input:
+#'     gtf: '`sm lambda wildcards: cfg.genome.getGeneAnnotationFile(wildcards.annotation) `'
+#'   output:
+#'     txdb: '`sm cfg.getProcessedDataDir() + "/preprocess/{annotation}/txdb.db"`'
+#'     gene_name_mapping: '`sm cfg.getProcessedDataDir() + "/preprocess/{annotation}/gene_name_mapping_{annotation}.tsv"`'
+#'     count_ranges: '`sm cfg.getProcessedDataDir() + "/aberrant_expression/{annotation}/count_ranges.Rds" `'
+#'   type: script
+#'   params:
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'   benchmark: '`sm str(bench_dir / "AE" / "{annotation}" / "preprocess.txt")`'
 #'---
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 
 suppressPackageStartupMessages({
   library(GenomicFeatures)

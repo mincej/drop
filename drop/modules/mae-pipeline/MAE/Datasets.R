@@ -1,18 +1,20 @@
 #'---
 #' title: MAE analysis over all datasets
-#' author: 
+#' author: null
 #' wb:
-#'  log:
-#'    - snakemake: '`sm str(tmp_dir / "MAE" / "overview.Rds")`'
-#'  input:
-#'    - html: '`sm expand(config["htmlOutputPath"] + 
-#'             "/MonoallelicExpression/{dataset}--{annotation}_results.html",
-#'              annotation=cfg.genome.getGeneVersions(), dataset=cfg.MAE.groups)`'
-#' output:
-#'  html_document
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "MAE" / "overview.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "MAE" / "overview.Rds")`'
+#'   input:
+#'     html: '`sm expand(config["htmlOutputPath"] + "/MonoallelicExpression/{dataset}--{annotation}_results.html", annotation=cfg.genome.getGeneVersions(), dataset=cfg.MAE.groups)`'
+#'   params:
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'   benchmark: '`sm str(bench_dir / "MAE" / "overview.txt")`'
+#' output: html_document
 #'---
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 
 # Obtain the annotations and datasets
 datasets <- snakemake@config$mae$groups 

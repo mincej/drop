@@ -1,23 +1,26 @@
 #'---
 #' title: Merge the counts for all samples
-#' author: Michaela Müller
+#' author: "Michaela M\xFCller"
 #' wb:
-#'  log:
-#'   - snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "merge.Rds")`'
-#'  params:
-#'   - exCountIDs: '`sm lambda w: sa.getIDsByGroup(w.dataset, assay="GENE_COUNT")`'
-#'  input: 
-#'   - counts: '`sm lambda w: cfg.AE.getCountFiles(w.annotation, w.dataset)`'
-#'   - count_ranges: '`sm cfg.getProcessedDataDir() + "/aberrant_expression/{annotation}/count_ranges.Rds" `'
-#'   - input_params: '`sm cfg.getProcessedDataDir() + "/aberrant_expression/{annotation}/params/merge/{dataset}_mergeParams.csv"`'
-#'  output:
-#'    - counts: '`sm cfg.getProcessedDataDir() +
-#'               "/aberrant_expression/{annotation}/outrider/{dataset}/total_counts.Rds"`'
-#'  threads: 30
-#'  type: script
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "merge.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "merge.Rds")`'
+#'   params:
+#'     exCountIDs: '`sm lambda w: sa.getIDsByGroup(w.dataset, assay="GENE_COUNT")`'
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'   input:
+#'     counts: '`sm lambda w: cfg.AE.getCountFiles(w.annotation, w.dataset)`'
+#'     count_ranges: '`sm cfg.getProcessedDataDir() + "/aberrant_expression/{annotation}/count_ranges.Rds" `'
+#'     input_params: '`sm cfg.getProcessedDataDir() + "/aberrant_expression/{annotation}/params/merge/{dataset}_mergeParams.csv"`'
+#'   output:
+#'     counts: '`sm cfg.getProcessedDataDir() + "/aberrant_expression/{annotation}/outrider/{dataset}/total_counts.Rds"`'
+#'   threads: 30
+#'   type: script
+#'   benchmark: '`sm str(bench_dir / "AE" / "{annotation}" / "{dataset}" / "merge.txt")`'
 #'---
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 
 suppressPackageStartupMessages({
     library(data.table)

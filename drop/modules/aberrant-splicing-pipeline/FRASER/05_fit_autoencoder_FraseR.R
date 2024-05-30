@@ -2,22 +2,24 @@
 #' title: Fitting the autoencoder
 #' author: Christian Mertes
 #' wb:
-#'  log:
-#'    - snakemake: '`sm str(tmp_dir / "AS" / "{dataset}" / "05_fit.Rds")`'
-#'  params:
-#'   - setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
-#'   - workingDir: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/"`'
-#'  threads: 20
-#'  input:
-#'   - hyper: '`sm expand(cfg.getProcessedDataDir() + 
-#'                "/aberrant_splicing/datasets/savedObjects/{dataset}/hyper_{version}.done", version=cfg.AS.get("FRASER_version"), allow_missing=True)`'
-#'  output:
-#'   - fdsout: '`sm expand(cfg.getProcessedDataDir() + 
-#'                  "/aberrant_splicing/datasets/savedObjects/{dataset}/predictedMeans_{type}.h5", type=cfg.AS.getPsiTypeAssay(), allow_missing=True)`'
-#'  type: script
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "AS" / "{dataset}" / "05_fit.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "AS" / "{dataset}" / "05_fit.Rds")`'
+#'   params:
+#'     setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
+#'     workingDir: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/"`'
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'   threads: 20
+#'   input:
+#'     hyper: '`sm expand(cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/savedObjects/{dataset}/hyper_{version}.done", version=cfg.AS.get("FRASER_version"), allow_missing=True)`'
+#'   output:
+#'     fdsout: '`sm expand(cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/savedObjects/{dataset}/predictedMeans_{type}.h5", type=cfg.AS.getPsiTypeAssay(), allow_missing=True)`'
+#'   type: script
+#'   benchmark: '`sm str(bench_dir / "AS" / "{dataset}" / "05_fit.txt")`'
 #'---
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 source(snakemake@params$setup, echo=FALSE)
 
 dataset    <- snakemake@wildcards$dataset

@@ -2,32 +2,30 @@
 #' title: MAE Results table
 #' author: vyepez
 #' wb:
-#'  log:
-#'   - snakemake: '`sm str(tmp_dir / "MAE" / "{dataset}" / "{annotation}_results.Rds")`'
-#'  params:
-#'   - allelicRatioCutoff: '`sm cfg.MAE.get("allelicRatioCutoff")`'
-#'   - padjCutoff: '`sm cfg.MAE.get("padjCutoff")`'
-#'   - maxCohortFreq: '`sm cfg.MAE.get("maxVarFreqCohort")`'
-#'  input:
-#'   - mae_res: '`sm lambda w: expand(cfg.getProcessedResultsDir() + 
-#'                "/mae/samples/{id}_res.Rds", id=cfg.MAE.getMaeByGroup({w.dataset}))`'
-#'   - gene_name_mapping: '`sm cfg.getProcessedDataDir() +
-#'                          "/mae/gene_name_mapping_{annotation}.tsv"`'
-#'   - input_sample_params: '`sm cfg.getProcessedDataDir() + "/mae/params/results/{dataset}_resultParams.csv" `'
-#'  output:
-#'   - res_all: '`sm cfg.getProcessedResultsDir() + 
-#'                "/mae/{dataset}/MAE_results_all_{annotation}.tsv.gz"`' 
-#'   - res_signif: '`sm cfg.getProcessedResultsDir() + 
-#'                   "/mae/{dataset}/MAE_results_{annotation}.tsv"`'
-#'   - res_signif_rare: '`sm cfg.getProcessedResultsDir() + 
-#'                   "/mae/{dataset}/MAE_results_{annotation}_rare.tsv"`'
-#'   - wBhtml: '`sm config["htmlOutputPath"] +
-#'               "/MonoallelicExpression/{dataset}--{annotation}_results.html"`'
-#'  type: noindex
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "MAE" / "{dataset}" / "{annotation}_results.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "MAE" / "{dataset}" / "{annotation}_results.Rds")`'
+#'   params:
+#'     allelicRatioCutoff: '`sm cfg.MAE.get("allelicRatioCutoff")`'
+#'     padjCutoff: '`sm cfg.MAE.get("padjCutoff")`'
+#'     maxCohortFreq: '`sm cfg.MAE.get("maxVarFreqCohort")`'
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'   input:
+#'     mae_res: '`sm lambda w: expand(cfg.getProcessedResultsDir() + "/mae/samples/{id}_res.Rds", id=cfg.MAE.getMaeByGroup({w.dataset}))`'
+#'     gene_name_mapping: '`sm cfg.getProcessedDataDir() + "/mae/gene_name_mapping_{annotation}.tsv"`'
+#'     input_sample_params: '`sm cfg.getProcessedDataDir() + "/mae/params/results/{dataset}_resultParams.csv" `'
+#'   output:
+#'     res_all: '`sm cfg.getProcessedResultsDir() + "/mae/{dataset}/MAE_results_all_{annotation}.tsv.gz"`'
+#'     res_signif: '`sm cfg.getProcessedResultsDir() + "/mae/{dataset}/MAE_results_{annotation}.tsv"`'
+#'     res_signif_rare: '`sm cfg.getProcessedResultsDir() + "/mae/{dataset}/MAE_results_{annotation}_rare.tsv"`'
+#'     wBhtml: '`sm config["htmlOutputPath"] + "/MonoallelicExpression/{dataset}--{annotation}_results.html"`'
+#'   type: noindex
+#'   benchmark: '`sm str(bench_dir / "MAE" / "{dataset}" / "{annotation}_results.txt")`'
 #'---
 
 #+ echo=F
-saveRDS(snakemake, snakemake@log$snakemake)
+
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 
 suppressPackageStartupMessages({
   library(data.table)

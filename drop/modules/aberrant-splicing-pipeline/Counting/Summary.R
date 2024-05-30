@@ -1,22 +1,24 @@
 #'---
-#' title: "Count Summary: `r gsub('_', ' ', snakemake@wildcards$dataset)`"
+#' title: 'Count Summary: `r gsub("_", " ", snakemake@wildcards$dataset)`'
 #' author: Christian Mertes
 #' wb:
-#'  log:
-#'    - snakemake: '`sm str(tmp_dir / "AS" / "{dataset}" / "CountSummary.Rds")`'
-#'  params:
-#'   - setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
-#'   - workingDir: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/"`'
-#'  input:
-#'   - filter: '`sm expand(cfg.getProcessedDataDir() +
-#'                  "/aberrant_splicing/datasets/savedObjects/{dataset}/filter_{version}.done", version=cfg.AS.get("FRASER_version"), allow_missing=True)`'
-#'  output:
-#'   - wBhtml: '`sm config["htmlOutputPath"] + 
-#'                  "/AberrantSplicing/{dataset}_countSummary.html"`'
-#'  type: noindex
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "AS" / "{dataset}" / "CountSummary.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "AS" / "{dataset}" / "CountSummary.Rds")`'
+#'   params:
+#'     setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
+#'     workingDir: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/"`'
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'   input:
+#'     filter: '`sm expand(cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/savedObjects/{dataset}/filter_{version}.done", version=cfg.AS.get("FRASER_version"), allow_missing=True)`'
+#'   output:
+#'     wBhtml: '`sm config["htmlOutputPath"] + "/AberrantSplicing/{dataset}_countSummary.html"`'
+#'   type: noindex
+#'   benchmark: '`sm str(bench_dir / "AS" / "{dataset}" / "CountSummary.txt")`'
 #'---
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 source(snakemake@params$setup, echo=FALSE)
 
 suppressPackageStartupMessages({

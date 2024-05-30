@@ -2,31 +2,28 @@
 #' title: RNA Variant Calling
 #' author: nickhsmith
 #' wb:
-#'  log:
-#'    - snakemake: '`sm str(tmp_dir / "RVC" / "Overview.Rds")`'
-#'  params:
-#'    - annotations: '`sm cfg.genome.getGeneVersions()`'
-#'    - datasets: '`sm cfg.RVC.groups`'
-#'    - htmlDir: '`sm config["htmlOutputPath"] + "/rnaVariantCalling"`'
-#'  input:
-#'    - functions: '`sm cfg.workDir / "Scripts/html_functions.R"`'
-#'    - htmls:     '`sm expand(os.path.join(config["htmlOutputPath"],
-#'                             "rnaVariantCalling",
-#'                             "{annotation}/Summary_{dataset}.html"),
-#'                          annotation = cfg.genome.getGeneVersions(), dataset = cfg.RVC.groups)`' 
-#'    - annotated_vcfs: '`sm expand(os.path.join(
-#'                            cfg.processedResultsDir,
-#'                            "rnaVariantCalling/batch_vcfs", "{dataset}",
-#'                            "{dataset}_{annotation}.annotated.vcf.gz"),
-#'                          annotation = cfg.genome.getGeneVersions(), dataset = cfg.RVC.groups)`'
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "RVC" / "Overview.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "RVC" / "Overview.Rds")`'
+#'   params:
+#'     annotations: '`sm cfg.genome.getGeneVersions()`'
+#'     datasets: '`sm cfg.RVC.groups`'
+#'     htmlDir: '`sm config["htmlOutputPath"] + "/rnaVariantCalling"`'
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'   input:
+#'     functions: '`sm cfg.workDir / "Scripts/html_functions.R"`'
+#'     htmls: '`sm expand(os.path.join(config["htmlOutputPath"], "rnaVariantCalling", "{annotation}/Summary_{dataset}.html"), annotation = cfg.genome.getGeneVersions(), dataset = cfg.RVC.groups)`'
+#'     annotated_vcfs: '`sm expand(os.path.join( cfg.processedResultsDir, "rnaVariantCalling/batch_vcfs", "{dataset}", "{dataset}_{annotation}.annotated.vcf.gz"), annotation = cfg.genome.getGeneVersions(), dataset = cfg.RVC.groups)`'
+#'   benchmark: '`sm str(bench_dir / "RVC" / "Overview.txt")`'
 #' output:
 #'   html_document:
-#'    code_folding: hide
-#'    code_download: TRUE
+#'     code_folding: hide
+#'     code_download: true
 #'---
 
 #+ include=FALSE
-saveRDS(snakemake, snakemake@log$snakemake)
+
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 source(snakemake@input$functions)
 
 #+ eval=TRUE, echo=FALSE

@@ -2,24 +2,28 @@
 #' title: OUTRIDER Results
 #' author: mumichae
 #' wb:
-#'  log:
-#'   - snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "OUTRIDER_results.Rds")`'
-#'  params:
-#'   - padjCutoff: '`sm cfg.AE.get("padjCutoff")`'
-#'   - zScoreCutoff: '`sm cfg.AE.get("zScoreCutoff")`'
-#'   - hpoFile: '`sm cfg.get("hpoFile")`'
-#'  input:
-#'   - add_HPO_cols: '`sm str(projectDir / ".drop" / "helpers" / "add_HPO_cols.R")`'
-#'   - ods: '`sm cfg.getProcessedResultsDir() + "/aberrant_expression/{annotation}/outrider/{dataset}/ods.Rds"`'
-#'   - gene_name_mapping: '`sm cfg.getProcessedDataDir() + "/preprocess/{annotation}/gene_name_mapping_{annotation}.tsv"`'
-#'   - input_params: '`sm cfg.getProcessedDataDir() + "/aberrant_expression/{annotation}/params/results/{dataset}_resultParams.csv"`'
-#'  output:
-#'   - results: '`sm cfg.getProcessedResultsDir() + "/aberrant_expression/{annotation}/outrider/{dataset}/OUTRIDER_results.tsv"`'
-#'   - results_all: '`sm cfg.getProcessedResultsDir() + "/aberrant_expression/{annotation}/outrider/{dataset}/OUTRIDER_results_all.Rds"`'
-#'  type: script
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "OUTRIDER_results.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "OUTRIDER_results.Rds")`'
+#'   params:
+#'     padjCutoff: '`sm cfg.AE.get("padjCutoff")`'
+#'     zScoreCutoff: '`sm cfg.AE.get("zScoreCutoff")`'
+#'     hpoFile: '`sm cfg.get("hpoFile")`'
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'   input:
+#'     add_HPO_cols: '`sm str(projectDir / ".drop" / "helpers" / "add_HPO_cols.R")`'
+#'     ods: '`sm cfg.getProcessedResultsDir() + "/aberrant_expression/{annotation}/outrider/{dataset}/ods.Rds"`'
+#'     gene_name_mapping: '`sm cfg.getProcessedDataDir() + "/preprocess/{annotation}/gene_name_mapping_{annotation}.tsv"`'
+#'     input_params: '`sm cfg.getProcessedDataDir() + "/aberrant_expression/{annotation}/params/results/{dataset}_resultParams.csv"`'
+#'   output:
+#'     results: '`sm cfg.getProcessedResultsDir() + "/aberrant_expression/{annotation}/outrider/{dataset}/OUTRIDER_results.tsv"`'
+#'     results_all: '`sm cfg.getProcessedResultsDir() + "/aberrant_expression/{annotation}/outrider/{dataset}/OUTRIDER_results_all.Rds"`'
+#'   type: script
+#'   benchmark: '`sm str(bench_dir / "AE" / "{annotation}" / "{dataset}" / "OUTRIDER_results.txt")`'
 #'---
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 source(snakemake@input$add_HPO_cols)
 
 suppressPackageStartupMessages({

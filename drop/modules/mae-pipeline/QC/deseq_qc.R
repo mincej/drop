@@ -2,16 +2,21 @@
 #' title: MAE test on qc variants
 #' author: vyepez
 #' wb:
-#'  log:
-#'   - snakemake: '`sm str(tmp_dir / "MAE" / "deseq" / "QC--{rna}.Rds")`'
-#'  input:
-#'   - qc_counts: '`sm cfg.getProcessedDataDir() + "/mae/allelic_counts/QC--{rna}.csv.gz" `'
-#'  output:
-#'   - mae_res: '`sm cfg.getProcessedDataDir() + "/mae/RNA_GT/{rna}.Rds"`'
-#'  type: script
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "MAE" / "deseq" / "QC--{rna}.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "MAE" / "deseq" / "QC--{rna}.Rds")`'
+#'   input:
+#'     qc_counts: '`sm cfg.getProcessedDataDir() + "/mae/allelic_counts/QC--{rna}.csv.gz" `'
+#'   output:
+#'     mae_res: '`sm cfg.getProcessedDataDir() + "/mae/RNA_GT/{rna}.Rds"`'
+#'   type: script
+#'   params:
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'   benchmark: '`sm str(bench_dir / "MAE" / "deseq" / "QC--{rna}.txt")`'
 #'---
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 
 suppressPackageStartupMessages({
   library(GenomicRanges)

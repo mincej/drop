@@ -1,23 +1,18 @@
 #'---
-#' title: "RNA Variant Calling Data Table"
+#' title: RNA Variant Calling Data Table
 #' author: nickhsmith
 #' wb:
-#'  log:
-#'    - snakemake: '`sm str(tmp_dir / "RVC" / "{dataset}" / "{annotation}_RVC_data_table.Rds")`'
-#'  input:
-#'   - configParams: '`sm os.path.join(
-#'                        cfg.processedDataDir,
-#'                        "rnaVariantCalling/params/config/rnaVariantCalling_config.tsv")`'
-#'   - annotatedVCF: '`sm os.path.join(
-#'                        cfg.processedResultsDir,
-#'                        "rnaVariantCalling/batch_vcfs", "{dataset}",
-#'                        "{dataset}_{annotation}.annotated.vcf.gz")`'
-#'  output:
-#'   - data_table: '`sm os.path.join(
-#'                        cfg.processedResultsDir,
-#'                        "rnaVariantCalling/data_tables", "{dataset}",
-#'                        "{dataset}_{annotation}_data_table.Rds")`'
-#'  type: script
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "RVC" / "{dataset}" / "{annotation}_RVC_data_table.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "RVC" / "{dataset}" / "{annotation}_RVC_data_table.Rds")`'
+#'   input:
+#'     configParams: '`sm os.path.join( cfg.processedDataDir, "rnaVariantCalling/params/config/rnaVariantCalling_config.tsv")`'
+#'     annotatedVCF: '`sm os.path.join( cfg.processedResultsDir, "rnaVariantCalling/batch_vcfs", "{dataset}", "{dataset}_{annotation}.annotated.vcf.gz")`'
+#'   output:
+#'     data_table: '`sm os.path.join( cfg.processedResultsDir, "rnaVariantCalling/data_tables", "{dataset}", "{dataset}_{annotation}_data_table.Rds")`'
+#'   type: script
+#'   params:
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'   benchmark: '`sm str(bench_dir / "RVC" / "{dataset}" / "{annotation}_RVC_data_table.txt")`'
 #'---
 
 #+ echo=FALSE
@@ -27,7 +22,9 @@ library(tMAE)
 library(dplyr)
 library(GenomicScores)
 
-saveRDS(snakemake, snakemake@log$snakemake)
+
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 ####
 # Helper functions
 ####

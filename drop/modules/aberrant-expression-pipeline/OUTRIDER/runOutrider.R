@@ -2,20 +2,23 @@
 #' title: Filter Counts for OUTRIDER
 #' author: Michaela Mueller
 #' wb:
-#'  log:
-#'   - snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "runOUTRIDER.Rds")`'
-#'  input:
-#'   - ods: '`sm cfg.getProcessedResultsDir() + 
-#'           "/aberrant_expression/{annotation}/outrider/{dataset}/ods_unfitted.Rds"`'
-#'  output:
-#'   - ods_fitted: '`sm cfg.getProcessedResultsDir() + 
-#'           "/aberrant_expression/{annotation}/outrider/{dataset}/ods_fitted.Rds"`'
-#'  type: script
-#'  threads: 30
+#'   log:
+#'     snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "runOUTRIDER.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "runOUTRIDER.Rds")`'
+#'   input:
+#'     ods: '`sm cfg.getProcessedResultsDir() + "/aberrant_expression/{annotation}/outrider/{dataset}/ods_unfitted.Rds"`'
+#'   output:
+#'     ods_fitted: '`sm cfg.getProcessedResultsDir() + "/aberrant_expression/{annotation}/outrider/{dataset}/ods_fitted.Rds"`'
+#'   type: script
+#'   threads: 30
+#'   params:
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'   benchmark: '`sm str(bench_dir / "AE" / "{annotation}" / "{dataset}" / "runOUTRIDER.txt")`'
 #'---
 
 #+ echo=F
-saveRDS(snakemake, snakemake@log$snakemake)
+
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 
 suppressPackageStartupMessages({
     library(OUTRIDER)
