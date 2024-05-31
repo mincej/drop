@@ -16,15 +16,19 @@
 #'---
 
 #+ echo=FALSE
-library(data.table)
-library(VariantAnnotation)
-library(tMAE)
-library(dplyr)
-library(GenomicScores)
-
 
 source(snakemake@params$logSinker)
 logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
+
+suppressPackageStartupMessages({
+  library(data.table)
+  library(VariantAnnotation)
+  library(tMAE)
+  library(dplyr)
+  library(GenomicScores)
+})
+
+
 ####
 # Helper functions
 ####

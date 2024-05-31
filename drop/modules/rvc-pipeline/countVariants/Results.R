@@ -16,12 +16,13 @@
 
 
 #+ echo=FALSE
-library(data.table)
-library(ggplot2)
-
-
 source(snakemake@params$logSinker)
 logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
+
+suppressPackageStartupMessages({
+    library(data.table)
+    library(ggplot2)
+})
 
 res <- readRDS(snakemake@input$data_table)
 res_plot <- copy(res)

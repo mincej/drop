@@ -45,7 +45,6 @@ if(is.null(colData(ods)$isExternal)) colData(ods)$isExternal <- FALSE
 
 #' Number of samples: `r ncol(ods)`  
 #' Number of expressed genes: `r nrow(ods)`  
-
 #'
 #' ## Visualize
 #' ### Encoding dimension
@@ -113,7 +112,6 @@ res <- fread(snakemake@input$results)
 
 #' Total number of expression outliers: `r nrow(res)`  
 #' Samples with at least one outlier gene: `r res[, uniqueN(sampleID)]`  
-
 #'
 #' ### Aberrant samples
 #' 

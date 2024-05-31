@@ -30,8 +30,10 @@ source(snakemake@params$logSinker)
 logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 source(snakemake@input$setup, echo=FALSE)
 source(snakemake@input$add_HPO_cols)
-library(AnnotationDbi)
 
+suppressPackageStartupMessages({
+    library(AnnotationDbi)
+})
 annotation    <- snakemake@wildcards$annotation
 dataset    <- snakemake@wildcards$dataset
 fdsFile    <- snakemake@input$fdsin

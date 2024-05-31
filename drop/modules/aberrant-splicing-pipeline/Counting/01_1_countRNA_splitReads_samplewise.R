@@ -21,7 +21,10 @@
 source(snakemake@params$logSinker)
 logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 source(snakemake@params$setup, echo=FALSE)
-library(BSgenome)
+
+suppressPackageStartupMessages({
+  library(BSgenome)
+})
 
 dataset    <- snakemake@wildcards$dataset
 workingDir <- snakemake@params$workingDir
