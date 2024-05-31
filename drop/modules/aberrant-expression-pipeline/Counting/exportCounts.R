@@ -3,28 +3,20 @@
 #' author: Michaela Mueller, vyepez
 #' wb:
 #'   log:
-#'     snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "export_{genomeAssembly}.log") if config["full_log"] else str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "export_{genomeAssembly}.Rds")`'
+#'     snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "export_{genomeAssembly}.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "export_{genomeAssembly}.Rds")`'
 #'   input:
 #'     counts: '`sm cfg.getProcessedDataDir() + "/aberrant_expression/{annotation}/outrider/{dataset}/total_counts.Rds"`'
 #'   output:
 #'     export: '`sm cfg.exportCounts.getFilePattern(str_=False) / "geneCounts.tsv.gz"`'
 #'   type: script
 #'   params:
-#'     full_log: '`sm config["full_log"]`'
-#'   benchmark: '`sm str(bench_dir / "AE" / "{annotation}" / "{dataset}" / "export_{genomeAssembly}.log") if config["full_log"] else str(bench_dir / "AE" / "{annotation}" / "{dataset}" / "export_{genomeAssembly}.txt")`'
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'   benchmark: '`sm str(bench_dir / "AE" / "{annotation}" / "{dataset}" / "export_{genomeAssembly}.txt")`'
 #'---
 
 
-log_file <- snakemake@log$snakemake
-if(snakemake@params$full_log){
-    log <- file(log_file, open = "wt")
-
-    sink(log, type = "output")
-    sink(log, type = "message")
-    print(snakemake)
-} else {
-    saveRDS(snakemake, log_file)
-}
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 
 suppressPackageStartupMessages({
     library(data.table)

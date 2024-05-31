@@ -3,7 +3,7 @@
 #' author: mumichae
 #' wb:
 #'   log:
-#'     snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "preprocess.log") if config["full_log"] else str(tmp_dir / "AE" / "{annotation}" / "preprocess.Rds")`'
+#'     snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "preprocess.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "AE" / "{annotation}" / "preprocess.Rds")`'
 #'   input:
 #'     gtf: '`sm lambda wildcards: cfg.genome.getGeneAnnotationFile(wildcards.annotation) `'
 #'   output:
@@ -12,21 +12,13 @@
 #'     count_ranges: '`sm cfg.getProcessedDataDir() + "/aberrant_expression/{annotation}/count_ranges.Rds" `'
 #'   type: script
 #'   params:
-#'     full_log: '`sm config["full_log"]`'
-#'   benchmark: '`sm str(bench_dir / "AE" / "{annotation}" / "preprocess.log") if config["full_log"] else str(bench_dir / "AE" / "{annotation}" / "preprocess.txt")`'
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'   benchmark: '`sm str(bench_dir / "AE" / "{annotation}" / "preprocess.txt")`'
 #'---
 
 
-log_file <- snakemake@log$snakemake
-if(snakemake@params$full_log){
-    log <- file(log_file, open = "wt")
-
-    sink(log, type = "output")
-    sink(log, type = "message")
-    print(snakemake)
-} else {
-    saveRDS(snakemake, log_file)
-}
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 
 suppressPackageStartupMessages({
   library(GenomicFeatures)

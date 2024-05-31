@@ -3,7 +3,7 @@
 #' author: Michaela Mueller
 #' wb:
 #'   log:
-#'     snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "runOUTRIDER.log") if config["full_log"] else str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "runOUTRIDER.Rds")`'
+#'     snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "runOUTRIDER.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "runOUTRIDER.Rds")`'
 #'   input:
 #'     ods: '`sm cfg.getProcessedResultsDir() + "/aberrant_expression/{annotation}/outrider/{dataset}/ods_unfitted.Rds"`'
 #'   output:
@@ -11,22 +11,14 @@
 #'   type: script
 #'   threads: 30
 #'   params:
-#'     full_log: '`sm config["full_log"]`'
-#'   benchmark: '`sm str(bench_dir / "AE" / "{annotation}" / "{dataset}" / "runOUTRIDER.log") if config["full_log"] else str(bench_dir / "AE" / "{annotation}" / "{dataset}" / "runOUTRIDER.txt")`'
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'   benchmark: '`sm str(bench_dir / "AE" / "{annotation}" / "{dataset}" / "runOUTRIDER.txt")`'
 #'---
 
 #+ echo=F
 
-log_file <- snakemake@log$snakemake
-if(snakemake@params$full_log){
-    log <- file(log_file, open = "wt")
-
-    sink(log, type = "output")
-    sink(log, type = "message")
-    print(snakemake)
-} else {
-    saveRDS(snakemake, log_file)
-}
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 
 suppressPackageStartupMessages({
     library(OUTRIDER)

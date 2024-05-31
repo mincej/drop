@@ -3,13 +3,12 @@
 #' author: Christian Mertes
 #' wb:
 #'   log:
-#'     snakemake: '`sm str(tmp_dir / "AS" / "{dataset}" / "03_filter.log") if config["full_log"] else str(tmp_dir / "AS" / "{dataset}" / "03_filter.Rds")`'
+#'     snakemake: '`sm str(tmp_dir / "AS" / "{dataset}" / "03_filter.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "AS" / "{dataset}" / "03_filter.Rds")`'
 #'   params:
 #'     setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
-#'     init_ext: '`sm str(projectDir / ".drop" / "helpers" / "init_ext_FRASER_counts.R")`'
 #'     workingDir: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/"`'
 #'     exCountIDs: '`sm lambda w: sa.getIDsByGroup(w.dataset, assay="SPLICE_COUNT")`'
-#'     full_log: '`sm config["full_log"]`'
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
 #'   input:
 #'     splice_metrics: '`sm expand(cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/savedObjects/raw-local-{dataset}/{type}.h5", type=cfg.AS.getPsiTypeAssay(), allow_missing=True)`'
 #'     exCounts: '`sm lambda w: cfg.AS.getExternalCounts(w.dataset, "k_j_counts")`'
@@ -18,22 +17,12 @@
 #'     done: '`sm expand(cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/savedObjects/{dataset}/filter_{version}.done", version=cfg.AS.get("FRASER_version"), allow_missing=True)`'
 #'   threads: 3
 #'   type: script
-#'   benchmark: '`sm str(bench_dir / "AS" / "{dataset}" / "03_filter.log") if config["full_log"] else str(bench_dir / "AS" / "{dataset}" / "03_filter.txt")`'
+#'   benchmark: '`sm str(bench_dir / "AS" / "{dataset}" / "03_filter.txt")`'
 #'---
 
 
-log_file <- snakemake@log$snakemake
-if(snakemake@params$full_log){
-    log <- file(log_file, open = "wt")
-
-    sink(log, type = "output")
-    sink(log, type = "message")
-    print(snakemake)
-} else {
-    saveRDS(snakemake, log_file)
-}
-
-print('sourcing setup')
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 source(snakemake@params$setup, echo=FALSE)
 print('sourcing init ext')
 source(snakemake@params$init_ext)

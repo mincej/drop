@@ -3,10 +3,10 @@
 #' author: mumichae, vyepez, ischeller
 #' wb:
 #'   log:
-#'     snakemake: '`sm str(tmp_dir / "AS" / "{dataset}--{annotation}" / "FRASER_summary.log") if config["full_log"] else str(tmp_dir / "AS" / "{dataset}--{annotation}" / "FRASER_summary.Rds")`'
+#'     snakemake: '`sm str(tmp_dir / "AS" / "{dataset}--{annotation}" / "FRASER_summary.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "AS" / "{dataset}--{annotation}" / "FRASER_summary.Rds")`'
 #'   params:
 #'     setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
-#'     full_log: '`sm config["full_log"]`'
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
 #'   input:
 #'     fdsin: '`sm cfg.getProcessedResultsDir() + "/aberrant_splicing/datasets/savedObjects/{dataset}--{annotation}/fds-object.RDS"`'
 #'     results: '`sm cfg.getProcessedResultsDir() + "/aberrant_splicing/results/{annotation}/fraser/{dataset}/results.tsv"`'
@@ -14,20 +14,12 @@
 #'     wBhtml: '`sm config["htmlOutputPath"] + "/AberrantSplicing/{dataset}--{annotation}_summary.html"`'
 #'     res_html: '`sm config["htmlOutputPath"] + "/AberrantSplicing/FRASER_results_{dataset}--{annotation}.tsv"`'
 #'   type: noindex
-#'   benchmark: '`sm str(bench_dir / "AS" / "{dataset}--{annotation}" / "FRASER_summary.log") if config["full_log"] else str(bench_dir / "AS" / "{dataset}--{annotation}" / "FRASER_summary.txt")`'
+#'   benchmark: '`sm str(bench_dir / "AS" / "{dataset}--{annotation}" / "FRASER_summary.txt")`'
 #'---
 
 
-log_file <- snakemake@log$snakemake
-if(snakemake@params$full_log){
-    log <- file(log_file, open = "wt")
-
-    sink(log, type = "output")
-    sink(log, type = "message")
-    print(snakemake)
-} else {
-    saveRDS(snakemake, log_file)
-}
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 source(snakemake@params$setup, echo=FALSE)
 
 suppressPackageStartupMessages({

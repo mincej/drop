@@ -19,7 +19,8 @@ def setupPaths(projectRoot):
         "projectDir": projectRoot,
         "Scripts": projectRoot / "Scripts",
         "dropDir": projectRoot / ".drop",
-        "tmpDir": projectRoot / ".drop" / "tmp"
+        "tmpDir": projectRoot / ".drop" / "tmp",
+        "benchDir": projectRoot / ".drop" / "benchmarks"
     }
 
     return repoPaths, projectPaths

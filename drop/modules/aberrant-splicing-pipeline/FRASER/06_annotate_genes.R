@@ -3,12 +3,12 @@
 #' author: Ines Scheller
 #' wb:
 #'   log:
-#'     snakemake: '`sm str(tmp_dir / "AS" / "{dataset}--{annotation}" / "06_geneAnnotation.log") if config["full_log"] else str(tmp_dir / "AS" / "{dataset}--{annotation}" / "06_geneAnnotation.Rds")`'
+#'     snakemake: '`sm str(tmp_dir / "AS" / "{dataset}--{annotation}" / "06_geneAnnotation.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "AS" / "{dataset}--{annotation}" / "06_geneAnnotation.Rds")`'
 #'   params:
 #'     setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
 #'     workingDir: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/"`'
 #'     outputDir: '`sm cfg.getProcessedResultsDir() + "/aberrant_splicing/datasets/"`'
-#'     full_log: '`sm config["full_log"]`'
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
 #'   threads: 20
 #'   input:
 #'     fdsin: '`sm expand(cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/savedObjects/{dataset}/" + "predictedMeans_{type}.h5", type=cfg.AS.getPsiTypeAssay(), allow_missing=True)`'
@@ -18,23 +18,17 @@
 #'     fdsout: '`sm expand(cfg.getProcessedResultsDir() + "/aberrant_splicing/datasets/savedObjects/{dataset}--{annotation}/predictedMeans_{type}.h5", type=cfg.AS.getPsiTypeAssay(), allow_missing=True)`'
 #'     fds_rds: '`sm cfg.getProcessedResultsDir() + "/aberrant_splicing/datasets/savedObjects/{dataset}--{annotation}/fds-object.RDS"`'
 #'   type: script
-#'   benchmark: '`sm str(bench_dir / "AS" / "{dataset}--{annotation}" / "06_geneAnnotation.log") if config["full_log"] else str(bench_dir / "AS" / "{dataset}--{annotation}" / "06_geneAnnotation.txt")`'
+#'   benchmark: '`sm str(bench_dir / "AS" / "{dataset}--{annotation}" / "06_geneAnnotation.txt")`'
 #'---
 
 
-log_file <- snakemake@log$snakemake
-if(snakemake@params$full_log){
-    log <- file(log_file, open = "wt")
-
-    sink(log, type = "output")
-    sink(log, type = "message")
-    print(snakemake)
-} else {
-    saveRDS(snakemake, log_file)
-}
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 source(snakemake@params$setup, echo=FALSE)
-library(AnnotationDbi)
 
+suppressPackageStartupMessages({
+    library(AnnotationDbi)
+})
 annotation <- snakemake@wildcards$annotation
 dataset    <- snakemake@wildcards$dataset
 fdsFile    <- snakemake@input$fdsin

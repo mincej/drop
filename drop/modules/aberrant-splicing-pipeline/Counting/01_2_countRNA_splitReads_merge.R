@@ -3,11 +3,11 @@
 #' author: Luise Schuller
 #' wb:
 #'   log:
-#'     snakemake: '`sm str(tmp_dir / "AS" / "{dataset}" / "01_2_splitReadsMerge.log") if config["full_log"] else str(tmp_dir / "AS" / "{dataset}" / "01_2_splitReadsMerge.Rds")`'
+#'     snakemake: '`sm str(tmp_dir / "AS" / "{dataset}" / "01_2_splitReadsMerge.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "AS" / "{dataset}" / "01_2_splitReadsMerge.Rds")`'
 #'   params:
 #'     setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
 #'     workingDir: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets"`'
-#'     full_log: '`sm config["full_log"]`'
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
 #'   threads: 20
 #'   input:
 #'     sample_counts: '`sm lambda w: cfg.AS.getSplitCountFiles(w.dataset)`'
@@ -17,20 +17,12 @@
 #'     gRangesNonSplitCounts: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/cache/raw-local-{dataset}/gRanges_NonSplitCounts.rds"`'
 #'     spliceSites: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/cache/raw-local-{dataset}/spliceSites_splitCounts.rds"`'
 #'   type: script
-#'   benchmark: '`sm str(bench_dir / "AS" / "{dataset}" / "01_2_splitReadsMerge.log") if config["full_log"] else str(bench_dir / "AS" / "{dataset}" / "01_2_splitReadsMerge.txt")`'
+#'   benchmark: '`sm str(bench_dir / "AS" / "{dataset}" / "01_2_splitReadsMerge.txt")`'
 #'---
 
 
-log_file <- snakemake@log$snakemake
-if(snakemake@params$full_log){
-    log <- file(log_file, open = "wt")
-
-    sink(log, type = "output")
-    sink(log, type = "message")
-    print(snakemake)
-} else {
-    saveRDS(snakemake, log_file)
-}
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 source(snakemake@params$setup, echo=FALSE)
 
 dataset    <- snakemake@wildcards$dataset

@@ -3,12 +3,12 @@
 #' author: Ines Scheller
 #' wb:
 #'   log:
-#'     snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "pvalsOUTRIDER.log") if config["full_log"] else str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "pvalsOUTRIDER.Rds")`'
+#'     snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "pvalsOUTRIDER.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "pvalsOUTRIDER.Rds")`'
 #'   params:
 #'     ids: '`sm lambda w: sa.getIDsByGroup(w.dataset, assay="RNA")`'
 #'     parse_subsets_for_FDR: '`sm str(projectDir / ".drop" / "helpers" / "parse_subsets_for_FDR.R")`'
 #'     genes_to_test: '`sm cfg.AE.get("genesToTest")`'
-#'     full_log: '`sm config["full_log"]`'
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
 #'   input:
 #'     ods_fitted: '`sm cfg.getProcessedResultsDir() + "/aberrant_expression/{annotation}/outrider/{dataset}/ods_fitted.Rds"`'
 #'     gene_name_mapping: '`sm cfg.getProcessedDataDir() + "/preprocess/{annotation}/gene_name_mapping_{annotation}.tsv"`'
@@ -16,22 +16,14 @@
 #'     ods_with_pvals: '`sm cfg.getProcessedResultsDir() + "/aberrant_expression/{annotation}/outrider/{dataset}/ods.Rds"`'
 #'   type: script
 #'   threads: 30
-#'   benchmark: '`sm str(bench_dir / "AE" / "{annotation}" / "{dataset}" / "pvalsOUTRIDER.log") if config["full_log"] else str(bench_dir / "AE" / "{annotation}" / "{dataset}" / "pvalsOUTRIDER.txt")`'
+#'   benchmark: '`sm str(bench_dir / "AE" / "{annotation}" / "{dataset}" / "pvalsOUTRIDER.txt")`'
 #'---
 
 
 #+ echo=F
 
-log_file <- snakemake@log$snakemake
-if(snakemake@params$full_log){
-    log <- file(log_file, open = "wt")
-
-    sink(log, type = "output")
-    sink(log, type = "message")
-    print(snakemake)
-} else {
-    saveRDS(snakemake, log_file)
-}
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 
 suppressPackageStartupMessages({
     library(OUTRIDER)

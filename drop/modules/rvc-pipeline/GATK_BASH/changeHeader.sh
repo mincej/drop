@@ -5,17 +5,15 @@
 # 1 {input.bam}
 # 2 {input.bai}
 # 3 {params.sample}
-# 4 {log}
-# 5 {output.bam}
-# 6 {output.bai}
-# 7 {output.newHeader}
+# 4 {output.bam}
+# 5 {output.bai}
+# 6 {output.newHeader}
 input_bam=$1
 input_bai=$2
 sample=$3
-log=$4
-output_bam=$5
-output_bai=$6
-output_newHeader=$7
+output_bam=$4
+output_bai=$5
+output_newHeader=$6
 
 
 SM_internalHeader=""
@@ -32,9 +30,9 @@ while read header ; do
     done
 
     if [[ $SM_internalHeader == $sample && $PL_internalHeader != "" ]]; then
-        echo "Internal Header $SM_internalHeader matches $sample" |tee $log
-        echo "Internal Header is designated: $SM_internalHeader"  |tee -a $log
-        echo "SampleID is $sample" |tee -a $log
+        echo "Internal Header $SM_internalHeader matches $sample"
+        echo "Internal Header is designated: $SM_internalHeader"
+        echo "SampleID is $sample"
         ln -s -f  $input_bam $output_bam
         ln -s -f  $input_bai $output_bai
         echo "Done Linking files"
@@ -42,9 +40,9 @@ while read header ; do
     else
         if [[ $SM_internalHeader != $sample ]]; then
             echo "WARNING"
-            echo "Internal Header is designated: $SM_internalHeader" |tee $log
-            echo "SampleID is $sample"  |tee -a $log
-            echo "Forcing $SM_internalHeader to match $sample" |tee -a $log
+            echo "Internal Header is designated: $SM_internalHeader"
+            echo "SampleID is $sample"
+            echo "Forcing $SM_internalHeader to match $sample"
 
             # sed using regEx in place substitiute 'SM:' followed by any thing that isn't tab or newLine. and then replace it with the sampleID and the delimiter (tab or newLine) that matched in the 1st expression.
             samtools view -H $input_bam > $output_newHeader
@@ -52,9 +50,9 @@ while read header ; do
         fi
         if [[ $PL_internalHeader == "" ]]; then
             echo "WARNING"
-            echo "Internal PL Header is not designated: $PL_internalHeader" |tee $log
-            echo "PL cannot be empty. Using a Dummy: dummyPL "  |tee -a $log
-            echo "Forcing $PL_internalHeader to dummyPL" |tee -a $log
+            echo "Internal PL Header is not designated: $PL_internalHeader"
+            echo "PL cannot be empty. Using a Dummy: dummyPL "
+            echo "Forcing $PL_internalHeader to dummyPL"
 
             # sed using regEx in place substitiute '@RG' with @RG\tPL:dummyPL
             samtools view -H $input_bam > $output_newHeader
@@ -63,5 +61,5 @@ while read header ; do
         samtools reheader $output_newHeader $input_bam > $output_bam
         samtools index -b $output_bam
     fi
-    echo "new header can be found here:$output_newHeader" |tee -a $log
+    echo "new header can be found here:$output_newHeader"
 done

@@ -1,6 +1,7 @@
 projectTitle: Detection of RNA Outlier Pipeline
 htmlOutputPath: Output/html
 indexWithFolderName: true
+stream_to_log: "yes"
 root: Output
 sampleAnnotation: Data/sample_annotation.tsv
 full_log: true

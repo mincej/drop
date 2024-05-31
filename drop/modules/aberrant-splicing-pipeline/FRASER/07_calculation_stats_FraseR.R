@@ -3,34 +3,26 @@
 #' author: Christian Mertes
 #' wb:
 #'   log:
-#'     snakemake: '`sm str(tmp_dir / "AS" / "{dataset}--{annotation}" / "07_stats.log") if config["full_log"] else str(tmp_dir / "AS" / "{dataset}--{annotation}" / "07_stats.Rds")`'
+#'     snakemake: '`sm str(tmp_dir / "AS" / "{dataset}--{annotation}" / "07_stats.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "AS" / "{dataset}--{annotation}" / "07_stats.Rds")`'
 #'   params:
 #'     setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
 #'     workingDir: '`sm cfg.getProcessedResultsDir() + "/aberrant_splicing/datasets/"`'
 #'     ids: '`sm lambda w: sa.getIDsByGroup(w.dataset, assay="RNA")`'
 #'     parse_subsets_for_FDR: '`sm str(projectDir / ".drop" / "helpers" / "parse_subsets_for_FDR.R")`'
 #'     genes_to_test: '`sm cfg.AS.get("genesToTest")`'
-#'     full_log: '`sm config["full_log"]`'
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
 #'   threads: 20
 #'   input:
 #'     fdsin: '`sm expand(cfg.getProcessedResultsDir() + "/aberrant_splicing/datasets/savedObjects/{dataset}--{annotation}/" + "predictedMeans_{type}.h5", type=cfg.AS.getPsiTypeAssay(), allow_missing=True)`'
 #'   output:
 #'     fdsout: '`sm expand(cfg.getProcessedResultsDir() + "/aberrant_splicing/datasets/savedObjects/{dataset}--{annotation}/" + "padjBetaBinomial_{type}.h5", type=cfg.AS.getPsiTypeAssay(), allow_missing=True)`'
 #'   type: script
-#'   benchmark: '`sm str(bench_dir / "AS" / "{dataset}--{annotation}" / "07_stats.log") if config["full_log"] else str(bench_dir / "AS" / "{dataset}--{annotation}" / "07_stats.txt")`'
+#'   benchmark: '`sm str(bench_dir / "AS" / "{dataset}--{annotation}" / "07_stats.txt")`'
 #'---
 
 
-log_file <- snakemake@log$snakemake
-if(snakemake@params$full_log){
-    log <- file(log_file, open = "wt")
-
-    sink(log, type = "output")
-    sink(log, type = "message")
-    print(snakemake)
-} else {
-    saveRDS(snakemake, log_file)
-}
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 source(snakemake@params$setup, echo=FALSE)
 
 annotation <- snakemake@wildcards$annotation

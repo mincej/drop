@@ -1,3 +1,7 @@
+import sys
+sys.path.append(str(drop_dir) + "/helpers")
+from log_funcs import log_code
+
 MAE_WORKDIR = cfg.MAE.renameLocalDir()
 MAE_index_input,MAE_graph_file,MAE_index_output = cfg.MAE.getModuleIndexFiles("mae-pipeline",MAE_WORKDIR)
 
@@ -33,14 +37,22 @@ rule mae_createSNVs:
     output:
         snvs_filename = cfg.processedDataDir / "mae" / "snvs" / "{vcf}--{rna}.vcf.gz",
         snvs_index = cfg.processedDataDir / "mae" / "snvs" / "{vcf}--{rna}.vcf.gz.tbi"
+    log:
+        str(tmp_dir) + "/MAE/snvs/{vcf}--{rna}.log"
     params:
         bcftools = cfg.getTool("bcftoolsCmd"),
-        samtools = cfg.getTool("samtoolsCmd")
+        samtools = cfg.getTool("samtoolsCmd"),
+        log_func = log_code
     shell:
         """
-        {input.script} {input.ncbi2ucsc} {input.ucsc2ncbi} {input.vcf_file} \
-        {wildcards.vcf} {input.bam_file} {output.snvs_filename} \
-        {params.bcftools} {params.samtools}
+        function block(){{
+            {input.script} {input.ncbi2ucsc} {input.ucsc2ncbi} {input.vcf_file} \
+            {wildcards.vcf} {input.bam_file} {output.snvs_filename} \
+            {params.bcftools} {params.samtools}
+        }}
+
+        {params.log_func}
+        logCode {log} block
         """
 
 rule mae_allelicCounts:
@@ -58,11 +70,20 @@ rule mae_allelicCounts:
         bcftools = cfg.getTool("bcftoolsCmd"),
         samtools = cfg.getTool("samtoolsCmd"),
         gatk = cfg.getTool("gatkCmd"),
-        gatkIgnoreHeaderCheck = cfg.MAE.get("gatkIgnoreHeaderCheck")
+        gatkIgnoreHeaderCheck = cfg.MAE.get("gatkIgnoreHeaderCheck"),
+        log_func = log_code
+    log:
+        str(tmp_dir) + "/MAE/allelic_counts/{vcf}--{rna}.log"
     shell:
         """
-        {input.script} {input.ncbi2ucsc} {input.ucsc2ncbi} \
-        {input.vcf_file} {input.bam_file} {wildcards.vcf}--{wildcards.rna} \
-        {input.fasta} {params.gatkIgnoreHeaderCheck} {output.counted} \
-        {params.bcftools} {params.samtools} {params.gatk}
+        function block(){{
+            {input.script} {input.ncbi2ucsc} {input.ucsc2ncbi} \
+            {input.vcf_file} {input.bam_file} {wildcards.vcf}--{wildcards.rna} \
+            {input.fasta} {params.gatkIgnoreHeaderCheck} {output.counted} \
+            {params.bcftools} {params.samtools} {params.gatk}
+        }}
+
+        {params.log_func}
+        logCode {log} block
+
         """

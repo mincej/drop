@@ -3,10 +3,10 @@
 #' author: "Michaela M\xFCller"
 #' wb:
 #'   log:
-#'     snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "merge.log") if config["full_log"] else str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "merge.Rds")`'
+#'     snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "merge.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "merge.Rds")`'
 #'   params:
 #'     exCountIDs: '`sm lambda w: sa.getIDsByGroup(w.dataset, assay="GENE_COUNT")`'
-#'     full_log: '`sm config["full_log"]`'
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
 #'   input:
 #'     counts: '`sm lambda w: cfg.AE.getCountFiles(w.annotation, w.dataset)`'
 #'     count_ranges: '`sm cfg.getProcessedDataDir() + "/aberrant_expression/{annotation}/count_ranges.Rds" `'
@@ -15,20 +15,12 @@
 #'     counts: '`sm cfg.getProcessedDataDir() + "/aberrant_expression/{annotation}/outrider/{dataset}/total_counts.Rds"`'
 #'   threads: 30
 #'   type: script
-#'   benchmark: '`sm str(bench_dir / "AE" / "{annotation}" / "{dataset}" / "merge.log") if config["full_log"] else str(bench_dir / "AE" / "{annotation}" / "{dataset}" / "merge.txt")`'
+#'   benchmark: '`sm str(bench_dir / "AE" / "{annotation}" / "{dataset}" / "merge.txt")`'
 #'---
 
 
-log_file <- snakemake@log$snakemake
-if(snakemake@params$full_log){
-    log <- file(log_file, open = "wt")
-
-    sink(log, type = "output")
-    sink(log, type = "message")
-    print(snakemake)
-} else {
-    saveRDS(snakemake, log_file)
-}
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 
 suppressPackageStartupMessages({
     library(data.table)

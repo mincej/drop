@@ -3,28 +3,20 @@
 #' author: mumichae
 #' wb:
 #'   log:
-#'     snakemake: '`sm str(tmp_dir / "MAE" / "{annotation}.log") if config["full_log"] else str(tmp_dir / "MAE" / "{annotation}.Rds")`'
+#'     snakemake: '`sm str(tmp_dir / "MAE" / "{annotation}.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "MAE" / "{annotation}.Rds")`'
 #'   input:
 #'     gtf: '`sm lambda w: cfg.genome.getGeneAnnotationFile(w.annotation) `'
 #'   output:
 #'     gene_name_mapping: '`sm cfg.getProcessedDataDir() + "/mae/gene_name_mapping_{annotation}.tsv"`'
 #'   type: script
 #'   params:
-#'     full_log: '`sm config["full_log"]`'
-#'   benchmark: '`sm str(bench_dir / "MAE" / "{annotation}.log") if config["full_log"] else str(bench_dir / "MAE" / "{annotation}.txt")`'
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'   benchmark: '`sm str(bench_dir / "MAE" / "{annotation}.txt")`'
 #'---
 
 
-log_file <- snakemake@log$snakemake
-if(snakemake@params$full_log){
-    log <- file(log_file, open = "wt")
-
-    sink(log, type = "output")
-    sink(log, type = "message")
-    print(snakemake)
-} else {
-    saveRDS(snakemake, log_file)
-}
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 
 suppressPackageStartupMessages({
   library(rtracklayer)

@@ -3,26 +3,18 @@
 #' author: null
 #' wb:
 #'   log:
-#'     snakemake: '`sm str(tmp_dir / "MAE" / "overview.log") if config["full_log"] else str(tmp_dir / "MAE" / "overview.Rds")`'
+#'     snakemake: '`sm str(tmp_dir / "MAE" / "overview.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "MAE" / "overview.Rds")`'
 #'   input:
 #'     html: '`sm expand(config["htmlOutputPath"] + "/MonoallelicExpression/{dataset}--{annotation}_results.html", annotation=cfg.genome.getGeneVersions(), dataset=cfg.MAE.groups)`'
 #'   params:
-#'     full_log: '`sm config["full_log"]`'
-#'   benchmark: '`sm str(bench_dir / "MAE" / "overview.log") if config["full_log"] else str(bench_dir / "MAE" / "overview.txt")`'
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'   benchmark: '`sm str(bench_dir / "MAE" / "overview.txt")`'
 #' output: html_document
 #'---
 
 
-log_file <- snakemake@log$snakemake
-if(snakemake@params$full_log){
-    log <- file(log_file, open = "wt")
-
-    sink(log, type = "output")
-    sink(log, type = "message")
-    print(snakemake)
-} else {
-    saveRDS(snakemake, log_file)
-}
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 
 # Obtain the annotations and datasets
 datasets <- snakemake@config$mae$groups 

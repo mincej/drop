@@ -3,12 +3,12 @@
 #' author: vyepez
 #' wb:
 #'   log:
-#'     snakemake: '`sm str(tmp_dir / "MAE" / "{dataset}" / "{annotation}_results.log") if config["full_log"] else str(tmp_dir / "MAE" / "{dataset}" / "{annotation}_results.Rds")`'
+#'     snakemake: '`sm str(tmp_dir / "MAE" / "{dataset}" / "{annotation}_results.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "MAE" / "{dataset}" / "{annotation}_results.Rds")`'
 #'   params:
 #'     allelicRatioCutoff: '`sm cfg.MAE.get("allelicRatioCutoff")`'
 #'     padjCutoff: '`sm cfg.MAE.get("padjCutoff")`'
 #'     maxCohortFreq: '`sm cfg.MAE.get("maxVarFreqCohort")`'
-#'     full_log: '`sm config["full_log"]`'
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
 #'   input:
 #'     mae_res: '`sm lambda w: expand(cfg.getProcessedResultsDir() + "/mae/samples/{id}_res.Rds", id=cfg.MAE.getMaeByGroup({w.dataset}))`'
 #'     gene_name_mapping: '`sm cfg.getProcessedDataDir() + "/mae/gene_name_mapping_{annotation}.tsv"`'
@@ -19,21 +19,13 @@
 #'     res_signif_rare: '`sm cfg.getProcessedResultsDir() + "/mae/{dataset}/MAE_results_{annotation}_rare.tsv"`'
 #'     wBhtml: '`sm config["htmlOutputPath"] + "/MonoallelicExpression/{dataset}--{annotation}_results.html"`'
 #'   type: noindex
-#'   benchmark: '`sm str(bench_dir / "MAE" / "{dataset}" / "{annotation}_results.log") if config["full_log"] else str(bench_dir / "MAE" / "{dataset}" / "{annotation}_results.txt")`'
+#'   benchmark: '`sm str(bench_dir / "MAE" / "{dataset}" / "{annotation}_results.txt")`'
 #'---
 
 #+ echo=F
 
-log_file <- snakemake@log$snakemake
-if(snakemake@params$full_log){
-    log <- file(log_file, open = "wt")
-
-    sink(log, type = "output")
-    sink(log, type = "message")
-    print(snakemake)
-} else {
-    saveRDS(snakemake, log_file)
-}
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 
 suppressPackageStartupMessages({
   library(data.table)

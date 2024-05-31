@@ -3,10 +3,10 @@
 #' author: Michaela Mueller
 #' wb:
 #'   log:
-#'     snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "counts" / "{sampleID}.log") if config["full_log"] else str(tmp_dir / "AE" / "{annotation}" / "counts" / "{sampleID}.Rds")`'
+#'     snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "counts" / "{sampleID}.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "AE" / "{annotation}" / "counts" / "{sampleID}.Rds")`'
 #'   params:
 #'     COUNT_PARAMS: '`sm lambda w: cfg.AE.getCountParams(w.sampleID)`'
-#'     full_log: '`sm config["full_log"]`'
+#'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
 #'   input:
 #'     sample_bam: '`sm lambda w: sa.getFilePath(w.sampleID, file_type="RNA_BAM_FILE") `'
 #'     count_ranges: '`sm cfg.getProcessedDataDir() + "/aberrant_expression/{annotation}/count_ranges.Rds" `'
@@ -15,20 +15,12 @@
 #'     counts: '`sm cfg.getProcessedDataDir() + "/aberrant_expression/{annotation}/counts/{sampleID,[^/]+}.Rds"`'
 #'   type: script
 #'   threads: 1
-#'   benchmark: '`sm str(bench_dir / "AE" / "{annotation}" / "counts" / "{sampleID}.log") if config["full_log"] else str(bench_dir / "AE" / "{annotation}" / "counts" / "{sampleID}.txt")`'
+#'   benchmark: '`sm str(bench_dir / "AE" / "{annotation}" / "counts" / "{sampleID}.txt")`'
 #'---
 
 
-log_file <- snakemake@log$snakemake
-if(snakemake@params$full_log){
-    log <- file(log_file, open = "wt")
-
-    sink(log, type = "output")
-    sink(log, type = "message")
-    print(snakemake)
-} else {
-    saveRDS(snakemake, log_file)
-}
+source(snakemake@params$logSinker)
+logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 
 suppressPackageStartupMessages({
   library(data.table)
