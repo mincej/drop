@@ -4,6 +4,7 @@ from log_funcs import log_code
 
 RVC_WORKDIR = cfg.RVC.renameLocalDir()
 RVC_index_input,RVC_graph_file,RVC_index_output = cfg.RVC.getModuleIndexFiles("rvc-pipeline",RVC_WORKDIR)
+keep_log = cfg.get("stream_to_log") != "no"
 
 #########
 # Helper Functions
@@ -115,7 +116,7 @@ rule split_multiVCF:
         ref = lambda wildcards: cfg.RVC.getGenomePath(wildcards.sample),
         log_func = log_code
     log:
-        str(tmp_dir) + "/RNAVAR/sample_vcfs/{sample}.single_vcf.log"
+        str(tmp_dir) + "/RVC/sample_vcfs/{sample}.single_vcf.log"
     shell:
         """
         function block(){{
@@ -140,7 +141,7 @@ rule sortIndexRepeatMask:
     params:
         log_func = log_code
     log:
-        str(tmp_dir) + "/RNAVAR/sort_repeat_mask.log"
+        str(tmp_dir) + "/RVC/sort_repeat_mask.log"
     shell:
         """
         function block(){{
@@ -176,7 +177,7 @@ rule simpleAnnotateVCF:
     params:
         log_func = log_code
     log:
-        str(tmp_dir) + "/RNAVAR/annotate_vcf/{dataset}--{annotation}.log"
+        str(tmp_dir) + "/RVC/annotate_vcf/{dataset}--{annotation}.log"
     shell:
         """
         function block(){{
@@ -218,7 +219,7 @@ rule maskMultiVCF:
         ref = lambda wildcards: cfg.RVC.getGenomePath(wildcards.dataset),
         log_func = log_code
     log:
-        str(tmp_dir) + "/RNAVAR/all_haplocaller/{dataset}_mask.log"
+        str(tmp_dir) + "/RVC/all_haplocaller/{dataset}_mask.log"
     shell:
         """
         function block(){{
@@ -259,7 +260,7 @@ rule leftNormalVCF:
         ref = lambda wildcards: cfg.RVC.getGenomePath(wildcards.dataset),
         log_func = log_code
     log:
-        str(tmp_dir) + "/RNAVAR/all_haplocaller/{dataset}_split_norm.log"
+        str(tmp_dir) + "/RVC/all_haplocaller/{dataset}_split_norm.log"
     shell:
         """
         function block(){{
@@ -312,7 +313,7 @@ rule filterVCF:
         minAlt = getMinAlt(),
         log_func = log_code
     log:
-        str(tmp_dir) + "/RNAVAR/all_haplocaller/{dataset}_filterVariants.log"
+        str(tmp_dir) + "/RVC/all_haplocaller/{dataset}_filterVariants.log"
     shell:
         """
         function block(){{
@@ -361,7 +362,7 @@ rule genotypeGVCFs:
         ref = lambda wildcards: cfg.RVC.getGenomePath(wildcards.dataset),
         log_func = log_code
     log:
-        str(tmp_dir) + "/RNAVAR/all_haplocaller/{dataset}_genotypeGVCFs.log"
+        str(tmp_dir) + "/RVC/all_haplocaller/{dataset}_genotypeGVCFs.log"
     shell:
         """
         function block(){{
@@ -410,7 +411,7 @@ rule combineGVCFs:
             ), sample = sa.getIDsByGroup(wildcards.dataset))],
         log_func = log_code
     log:
-        str(tmp_dir) + "/RNAVAR/all_haplocaller/{dataset}_combineGVCF.log"
+        str(tmp_dir) + "/RVC/all_haplocaller/{dataset}_combineGVCF.log"
     shell:
         """
         function block(){{
@@ -451,7 +452,7 @@ rule haplotypeCaller:
         dbSNP = getKnownVCFs(dbSNP_only = True),
         log_func = log_code
     log:
-        str(tmp_dir) + "/RNAVAR/all_haplocaller/{sample}.log"
+        str(tmp_dir) + "/RVC/all_haplocaller/{sample}.log"
     shell:
         """
         function block(){{
@@ -496,7 +497,7 @@ rule applyBQSR:
         ref = lambda wildcards: cfg.RVC.getGenomePath(wildcards.sample),
         log_func = log_code
     log:
-        str(tmp_dir) + "/RNAVAR/applyBQSR/{sample}.log"
+        str(tmp_dir) + "/RVC/applyBQSR/{sample}.log"
     shell:
         """
         function block(){{
@@ -536,7 +537,7 @@ rule bqsr:
         ncbi2ucsc = cfg.workDir / "Scripts/Pipeline/chr_NCBI_UCSC.txt",
         log_func = log_code
     log:
-        str(tmp_dir) + "/RNAVAR/bqsr/{sample}.log"
+        str(tmp_dir) + "/RVC/bqsr/{sample}.log"
     shell:
         """
         function block(){{
@@ -580,7 +581,7 @@ rule splitNcigar:
         ref = lambda wildcards: cfg.RVC.getGenomePath(wildcards.sample),
         log_func = log_code
     log:
-        str(tmp_dir) + "/RNAVAR/splitNcigar/{sample}.log"
+        str(tmp_dir) + "/RVC/splitNcigar/{sample}.log"
     shell:
         """
         function block(){{
@@ -618,7 +619,7 @@ rule reorderBAM:
     params:
         log_func = log_code
     log:
-        str(tmp_dir) + "/RNAVAR/reorder_bam/{sample}.log"
+        str(tmp_dir) + "/RVC/reorder_bam/{sample}.log"
     shell:
         """
         function block(){{
@@ -659,7 +660,7 @@ rule markDuplicates:
         metrics = os.path.join( cfg.processedDataDir, "rnaVariantCalling/out/picard-tools-marked-dup-metrics.txt"),
         log_func = log_code
     log:
-        str(tmp_dir) + "/RNAVAR/markDuplicates/{sample}.log"
+        str(tmp_dir) + "/RVC/markDuplicates/{sample}.log"
     shell:
         """
         function block(){{
@@ -702,7 +703,7 @@ rule sortBam:
     params:
         log_func = log_code
     log:
-        str(tmp_dir) + "/RNAVAR/sortBam/{sample}.log"
+        str(tmp_dir) + "/RVC/sortBam/{sample}.log"
     shell:
         """
         function block(){{
@@ -741,7 +742,7 @@ rule changeHeader:
         sample="{sample}",
         log_func = log_code
     log:
-        str(tmp_dir) + "/RNAVAR/changeHeader/{sample}.log"
+        str(tmp_dir) + "/RVC/changeHeader/{sample}.log"
     shell:
         """
         function block(){{
