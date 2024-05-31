@@ -20,9 +20,6 @@
 #'   html_document:
 #'     code_folding: hide
 #'     code_download: true
-#'   html_document:
-#'     code_folding: hide
-#'     code_download: true
 #'---
 
 

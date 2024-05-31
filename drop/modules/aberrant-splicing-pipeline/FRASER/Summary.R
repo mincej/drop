@@ -1,6 +1,5 @@
 #'---
 #' title: 'FRASER Summary: `r paste(snakemake@wildcards$dataset, snakemake@wildcards$annotation, sep = "--")`'
-#' title: 'FRASER Summary: `r paste(snakemake@wildcards$dataset, snakemake@wildcards$annotation, sep = "--")`'
 #' author: mumichae, vyepez, ischeller
 #' wb:
 #'   log:
