@@ -8,16 +8,14 @@
 # 4 {params.known_sites}
 # 5 {params.ucsc2ncbi}
 # 6 {params.ncbi2ucsc}
-# 7 {log}
-# 8 {resources.tmpdir}
-# 9 {output.bqsr_table}
+# 7 {resources.tmpdir}
+# 8 {output.bqsr_table}
 
 input_vcf=$1
 repeat_mask=$2
 ref=$3
 tmpdir=$4
-log=$5
-output_vcf=$6
+output_vcf=$5
 
 tmp_bed=$(mktemp)
 tmp_bed="${tmp_bed}.bed"
@@ -39,4 +37,4 @@ fi
 
 gatk IndexFeatureFile -I $tmp_bed
 gatk --java-options -Djava.io.tmpdir=${tmpdir} VariantFiltration -R $ref \
--V $input_vcf --mask $tmp_bed -O $output_vcf 2> $log
+-V $input_vcf --mask $tmp_bed -O $output_vcf

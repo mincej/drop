@@ -8,9 +8,8 @@
 # 4 {params.known_sites}
 # 5 {params.ucsc2ncbi}
 # 6 {params.ncbi2ucsc}
-# 7 {log}
-# 8 {resources.tmpdir}
-# 9 {output.bqsr_table}
+# 7 {resources.tmpdir}
+# 8 {output.bqsr_table}
 
 input_bam=$1
 input_bai=$2
@@ -19,9 +18,8 @@ tmp_known_sites=$4
 IFS=';' read -r -a known_sites_array <<< "$tmp_known_sites"
 ucsc2ncbi=$5
 ncbi2ucsc=$6
-log=$7
-tmpdir=$8
-output_bqsr_table=$9
+tmpdir=$7
+output_bqsr_table=$8
 
 # use samtools and bcftools to identify whether the bam file and
 # the known_sites files are in the same chr format.
@@ -34,7 +32,7 @@ known_vcf_files=${known_sites_array[@]}
 
 if [ $bam_chr -eq 0  ] && [ $vcf_chr -ne 0 ] #bam has no chr, vcf has chr styling
 then
-    echo "converting known vcfs from NCBI to UCSC format" | tee $log
+    echo "converting known vcfs from NCBI to UCSC format"
     for vcf in $known_vcf_files
     # for each vcf file convert and index the vcf to ncbi format into a tmp file
     do
@@ -45,7 +43,7 @@ then
     done
 elif [ $bam_chr -ne 0  ] && [ $vcf_chr -eq 0 ] #bam has chr, vcf has no chr styling
 then
-    echo "converting known vcfs from UCSC to NCBI format" | tee $log
+    echo "converting known vcfs from UCSC to NCBI format"
     for vcf in $known_vcf_files
     # for each vcf file convert and index the vcf to ucsc format into a tmp file
     do
@@ -55,7 +53,7 @@ then
         known_sites="--known-sites ${tmp_vcf}.gz $known_sites"
     done
 else
-    echo "chromosome styles match" |tee $log
+    echo "chromosome styles match"
     for vcf in $known_vcf_files
     # for each vcf file copy vcf and index into a tmp file
     do
@@ -67,5 +65,5 @@ fi
 echo "starting BaseRecalibrator"
 # using the tmp known_sites vcf use BaseRecalibrator
 gatk --java-options -Djava.io.tmpdir=${tmpdir} BaseRecalibrator -I $input_bam -R $ref \
-$known_sites -O $output_bqsr_table 2>&1 | tee -a $log
+$known_sites -O $output_bqsr_table
 

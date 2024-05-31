@@ -4,6 +4,7 @@ data/
 Output/
 .snakemake/
 .wBuild*
+.gitignore
 
 # python package temp files
 .ipynb_checkpoints*
@@ -46,3 +47,5 @@ slurm-*.out
 *_files
 *.cache
 tmp/
+conda.recipe/meta.yaml
+git_help.txt

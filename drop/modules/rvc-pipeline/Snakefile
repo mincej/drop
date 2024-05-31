@@ -222,7 +222,7 @@ rule maskMultiVCF:
     shell:
         """
         function block(){{
-            {input.script} {input.vcf} {input.repeat_mask} {params.ref} {resources.tmpdir} {log} {output.vcf}
+            {input.script} {input.vcf} {input.repeat_mask} {params.ref} {resources.tmpdir} {output.vcf}
         }}
 
         {params.log_func}
@@ -457,7 +457,7 @@ rule haplotypeCaller:
         function block(){{
             {input.script} {input.bam} {input.bai} \
             {params.ref} {params.dbSNP} {params.ucsc2ncbi} {params.ncbi2ucsc} \
-            {log} {resources.tmpdir} {output} {params.hcArgs}
+            {resources.tmpdir} {output} {params.hcArgs}
         }}
         
         {params.log_func}
@@ -542,7 +542,7 @@ rule bqsr:
         function block(){{
             {input.script} {input.bam} {input.bai} \
             {params.ref} "{params.highQualityVCFs}" {params.ucsc2ncbi} {params.ncbi2ucsc} \
-            {log} {resources.tmpdir} {output.bqsr_table}
+            {resources.tmpdir} {output.bqsr_table}
         }}
         
         {params.log_func}
@@ -586,7 +586,7 @@ rule splitNcigar:
         function block(){{
             gatk --java-options "-Djava.io.tmpdir={resources.tmpdir}" SplitNCigarReads \
             -R {params.ref} -I {input.bam} -fixNDN \
-            -O {output.bam} 2> {log}
+            -O {output.bam}
             #-RMQT 60 -U ALLOW_N_CIGAR_READS --allow_potentially_misencoded_quality_scores
         }}
         
@@ -745,7 +745,7 @@ rule changeHeader:
     shell:
         """
         function block(){{
-            {input.script} {input.bam} {input.bai} {params.sample} {log} \
+            {input.script} {input.bam} {input.bai} {params.sample} \
             {output.bam} {output.bai} {output.newHeader}
         }}
         
