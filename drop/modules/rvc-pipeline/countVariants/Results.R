@@ -1,5 +1,6 @@
 #'---
 #' title: 'RNA Variant Calling Summary: `r paste(snakemake@wildcards$dataset, snakemake@wildcards$annotation, sep = "--")`'
+#' title: 'RNA Variant Calling Summary: `r paste(snakemake@wildcards$dataset, snakemake@wildcards$annotation, sep = "--")`'
 #' author: nickhsmith
 #' wb:
 #'   log:

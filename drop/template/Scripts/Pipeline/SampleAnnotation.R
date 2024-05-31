@@ -1,6 +1,7 @@
 #'---
 #' title: Sample Annotation Overview
 #' author: null
+#' author: null
 #' wb:
 #'   log:
 #'     snakemake: '`sm str(tmp_dir / "SampleAnnotation.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "SampleAnnotation.Rds")`'
@@ -14,6 +15,8 @@
 #'   benchmark: '`sm str(bench_dir / "SampleAnnotation.txt")`'
 #' output:
 #'   html_document:
+#'     code_folding: hide
+#'     code_download: true
 #'     code_folding: hide
 #'     code_download: true
 #'---

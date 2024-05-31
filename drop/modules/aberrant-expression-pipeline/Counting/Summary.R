@@ -1,6 +1,8 @@
 #'---
 #' title: 'Counts Summary: `r paste(snakemake@wildcards$dataset, snakemake@wildcards$annotation, sep = "--")`'
 #' author: null
+#' title: 'Counts Summary: `r paste(snakemake@wildcards$dataset, snakemake@wildcards$annotation, sep = "--")`'
+#' author: null
 #' wb:
 #'   log:
 #'     snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "count_summary.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "count_summary.Rds")`'
@@ -14,6 +16,9 @@
 #'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
 #'   benchmark: '`sm str(bench_dir / "AE" / "{annotation}" / "{dataset}" / "count_summary.txt")`'
 #' output:
+#'   html_document:
+#'     code_folding: hide
+#'     code_download: true
 #'   html_document:
 #'     code_folding: hide
 #'     code_download: true

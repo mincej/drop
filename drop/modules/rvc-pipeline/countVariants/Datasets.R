@@ -13,6 +13,8 @@
 #'   html_document:
 #'     code_folding: hide
 #'     code_download: true
+#'     code_folding: hide
+#'     code_download: true
 #'---
 
 

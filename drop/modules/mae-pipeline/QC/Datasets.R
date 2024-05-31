@@ -1,6 +1,7 @@
 #'---
 #' title: VCF-BAM Matching Analysis over All Datasets
 #' author: null
+#' author: null
 #' wb:
 #'   log:
 #'     snakemake: '`sm str(tmp_dir / "MAE" / "QC_overview.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "MAE" / "QC_overview.Rds")`'

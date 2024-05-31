@@ -134,7 +134,6 @@ class DropConfig:
         setKey(config_dict, None, "stream_to_log", "no")
         setKey(config_dict, None, "fileRegex", r".*\.(R|md)")
         setKey(config_dict, None, "genomeAssembly", "hg19")
-
         hpo_url = 'https://www.cmm.in.tum.de/public/paper/drop_analysis/resource/hpo_genes.tsv.gz'
         setKey(config_dict, None, "hpoFile", hpo_url)
 

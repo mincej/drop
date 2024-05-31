@@ -1,6 +1,7 @@
 #'---
 #' title: MAE analysis over all datasets
 #' author: null
+#' author: null
 #' wb:
 #'   log:
 #'     snakemake: '`sm str(tmp_dir / "MAE" / "overview.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "MAE" / "overview.Rds")`'

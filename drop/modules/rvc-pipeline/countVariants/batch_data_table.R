@@ -1,5 +1,6 @@
 #'---
 #' title: RNA Variant Calling Data Table
+#' title: RNA Variant Calling Data Table
 #' author: nickhsmith
 #' wb:
 #'   log:

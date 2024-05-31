@@ -1,5 +1,6 @@
 #'---
 #' title: 'OUTRIDER Summary: `r paste(snakemake@wildcards$dataset, snakemake@wildcards$annotation, sep = "--")`'
+#' title: 'OUTRIDER Summary: `r paste(snakemake@wildcards$dataset, snakemake@wildcards$annotation, sep = "--")`'
 #' author: mumichae, vyepez
 #' wb:
 #'   log:
@@ -17,6 +18,9 @@
 #'   type: noindex
 #'   benchmark: '`sm str(bench_dir / "AE" / "{annotation}" / "{dataset}" / "OUTRIDER_summary.txt")`'
 #' output:
+#'   html_document:
+#'     code_folding: hide
+#'     code_download: true
 #'   html_document:
 #'     code_folding: hide
 #'     code_download: true

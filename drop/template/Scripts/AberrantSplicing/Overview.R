@@ -1,6 +1,7 @@
 #'---
 #' title: Aberrant Splicing
 #' author: null
+#' author: null
 #' wb:
 #'   log:
 #'     snakemake: '`sm str(tmp_dir / "AS" / "Overview.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "AS" / "Overview.Rds")`'
@@ -16,6 +17,8 @@
 #'   benchmark: '`sm str(bench_dir / "AS" / "Overview.txt")`'
 #' output:
 #'   html_document:
+#'     code_folding: show
+#'     code_download: true
 #'     code_folding: show
 #'     code_download: true
 #'---
