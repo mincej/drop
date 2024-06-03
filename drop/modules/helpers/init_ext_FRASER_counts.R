@@ -83,15 +83,7 @@ externalFRASER <- function(count_dir, annotation_file, fds_dir, fds_name, sample
     CtsK_theta <- getCountMatrix(extCts[["k_theta"]])
     CtsN_theta <- getCountMatrix(extCts[["n_theta"]])
 
-    ### FINAL OBJECTS
-    nsr <- SummarizedExperiment(
-            colData = data.frame(exAnno),
-            assays = SimpleList(
-                    rawCountsSS = CtsK_theta,
-                    rawOtherCounts_theta = (CtsN_theta - CtsK_theta)),
-            rowRanges= NSR_ranges
-    )
-
+    ### STRAND 
     strand <- unique(exAnno$STRAND)
     strand_int <- 0
     if(length(strand) > 1){
@@ -103,9 +95,20 @@ externalFRASER <- function(count_dir, annotation_file, fds_dir, fds_name, sample
     } else if(strand == "reverse"){
         strand_int <- 2L
     }
+    exAnno$STRAND <- strand_int
+    colnames(exAnno)[colnames(exAnno) == "STRAND"] <- "strand"
+
+    ### FINAL OBJECTS
+    nsr <- SummarizedExperiment(
+            colData = data.frame(exAnno),
+            assays = SimpleList(
+                    rawCountsSS = CtsK_theta,
+                    rawOtherCounts_theta = (CtsN_theta - CtsK_theta)),
+            rowRanges= NSR_ranges
+    )
+
     fds <- new("FraserDataSet",
                 name = fds_name,
-                strandSpecific = strand_int,
                 workingDir = fds_dir,
                 colData = DataFrame(exAnno),
                 assays = Assays(
@@ -121,7 +124,6 @@ externalFRASER <- function(count_dir, annotation_file, fds_dir, fds_name, sample
                 metadata = list()
     )
     fds@colData$isExternal <- as.factor(TRUE)
-    strandSpecific(fds) <- if(length(list(unique(exAnno$STRAND))) > 1) "no" else unique(exAnno$STRAND)
 
     ### RECOMPUTE PSI VALUES
     fds <- calculatePSIValues(fds)

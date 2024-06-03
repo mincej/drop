@@ -6,7 +6,7 @@
 #'    - snakemake: '`sm str(tmp_dir / "AS" / "{dataset}" / "03_filter.Rds")`'
 #'  params:
 #'   - setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
-#'   - init_ext_FRASER_counts: '`sm str(projectDir / ".drop" / "helpers" / "init_ext_FRASER_counts.R")`'
+#'   - initExt: '`sm str(projectDir / ".drop" / "helpers" / "init_ext_FRASER_counts.R")`'
 #'   - workingDir: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/"`'
 #'   - localIDs: '`sm lambda w: sa.getIDsByGroup(w.dataset, assay="RNA")`'
 #'   - exCountIDs: '`sm lambda w: sa.getIDsByGroup(w.dataset, assay="SPLICE_COUNT")`'
@@ -29,7 +29,7 @@
 
 saveRDS(snakemake, snakemake@log$snakemake)
 source(snakemake@params$setup, echo=FALSE)
-source(snakemake@params$init_ext_FRASER_counts)
+source(snakemake@params$initExt)
 
 opts_chunk$set(fig.width=12, fig.height=8)
 
