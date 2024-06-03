@@ -8,6 +8,7 @@
 #'     setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
 #'     workingDir: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/"`'
 #'     exCountIDs: '`sm lambda w: sa.getIDsByGroup(w.dataset, assay="SPLICE_COUNT")`'
+#'     initExt: '`sm str(projectDir / ".drop" / "helpers" / "init_ext_FRASER_counts.R")`'
 #'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
 #'   input:
 #'     splice_metrics: '`sm expand(cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/savedObjects/raw-local-{dataset}/{type}.h5", type=cfg.AS.getPsiTypeAssay(), allow_missing=True)`'
@@ -24,9 +25,7 @@
 source(snakemake@params$logSinker)
 logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 source(snakemake@params$setup, echo=FALSE)
-print('sourcing init ext')
-source(snakemake@params$init_ext)
-print('done sourcing')
+source(snakemake@params$initExt)
 opts_chunk$set(fig.width=12, fig.height=8)
 
 # input
