@@ -37,6 +37,11 @@ aberrantExpression:
     genesToTest: null
     maxTestedDimensionProportion: 3
     yieldSize: 2000000
+    preCorrect: true
+    correctColumns:
+        - column1
+        - column2
+    vst: true
 
 aberrantSplicing:
     run: true

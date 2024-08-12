@@ -5,7 +5,7 @@
 #'   log:
 #'     snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "count_summary.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "AE" / "{annotation}" / "{dataset}" / "count_summary.Rds")`'
 #'   input:
-#'     ods: '`sm cfg.getProcessedResultsDir() + "/aberrant_expression/{annotation}/outrider/{dataset}/ods_unfitted.Rds"`'
+#'     ods: '`sm cfg.getProcessedResultsDir() + "/aberrant_expression/{annotation}/outrider/{dataset}/ods_unfitted.Rds" if not config["aberrantExpression"]["preCorrect"] else cfg.getProcessedResultsDir() + "/aberrant_expression/{annotation}/outrider/{dataset}/ods_corrected.Rds"`'
 #'     bam_cov: '`sm rules.aberrantExpression_mergeBamStats.output`'
 #'   output:
 #'     wBhtml: '`sm config["htmlOutputPath"] + "/AberrantExpression/Counting/{annotation}/Summary_{dataset}.html"`'
