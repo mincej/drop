@@ -18,7 +18,6 @@
 #'   benchmark: '`sm str(bench_dir / "AE" / "{annotation}" / "{dataset}" / "merge.txt")`'
 #'---
 
-
 source(snakemake@params$logSinker)
 logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 

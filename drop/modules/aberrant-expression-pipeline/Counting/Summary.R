@@ -197,22 +197,22 @@ sex_idx <- which('SEX' == toupper(colnames(colData(ods))))
 if(isEmpty(sex_idx)){
   print('Sex column not found in sample annotation')
 } else{
-  
+
   # Verify if both XIST and UTY were counted
   xist_id <- 'XIST'
   uty_id <- 'UTY'
-  
+
   if(grepl('ENSG0', rownames(ods)[1])){
     xist_id <- 'ENSG00000229807'
     uty_id <- 'ENSG00000183878'
   }
   xist_idx <- grep(xist_id, rownames(ods))
   uty_idx <- grep(uty_id, rownames(ods))
-  
+
   if(isEmpty(xist_idx) | isEmpty(uty_idx)){
     print('Either XIST or UTY is not expressed')
   }else{
-    
+
     sex_counts <- counts(ods)[c(xist_idx, uty_idx), ]
     sex_dt <- data.table(sampleID = colnames(ods), 
                          XIST = counts(ods)[xist_idx,], 

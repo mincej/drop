@@ -15,7 +15,6 @@
 #'     code_download: true
 #'---
 
-
 source(snakemake@params$logSinker)
 logSinker(snakemake, snakemake@log$snakemake, snakemake@config$stream_to_log)
 
