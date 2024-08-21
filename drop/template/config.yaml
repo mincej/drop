@@ -41,7 +41,6 @@ aberrantExpression:
     correctColumns:
         - column1
         - column2
-    vst: true
 
 aberrantSplicing:
     run: true

@@ -12,7 +12,6 @@
 #'   params:
 #'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
 #'     correctColumns: 'config["aberrantExpression"]["correctColumns"]'
-#'     useVst: 'config["aberrantExpression"]["vst"]'
 #'   benchmark: '`sm str(bench_dir / "AE" / "{annotation}" / "{dataset}" / "precorrection.txt")`'
 #'---
 
@@ -25,10 +24,18 @@ suppressPackageStartupMessages({
     library(SummarizedExperiment)
     library(DESeq2)
     library(OUTRIDER)
+    library(glue)
 })
 
+# Grab the raw counts.
+ods <- readRDS(snakemake@input$ods)
+raw_matrix <- as.matrix(assay(ods))
+
+# Annotation data.
+anno <- colData(ods)
+
 # Check correction columns. 
-keep_cols <- c()
+correct_cols <- c()
 for(col in snakemake@params$correctColumns){
     if(!(col %in% colnames(anno))){
         stop(glue("{col} not found in annotation."))
@@ -38,13 +45,6 @@ for(col in snakemake@params$correctColumns){
         correct_cols <- c(correct_cols, col)
     }
 }
-
-# Grab the raw counts.
-ods <- read.RDS(snakemake@input$ods)
-raw_matrix <- as.matrix(assay(ods)$counts)
-
-# Annotation data.
-anno <- colData(ods)
 
 # Create new DESeq dataset, with the design matching any
 # of the adjustment columns. 
@@ -61,14 +61,7 @@ norm_deseq <- DeSeq(
     minReplicatesForReplace = Inf
 )
 
-# Variance-Stabilization Transform, if requested.
-# Else, provide un-transformed matrix.
-norm_matrix <- NA
-if(snakemake@params$vst){
-    norm_matrix <- assays(vst(norm_deseq))[[1]]
-} else {
-    norm_matrix <- assays(norm_deseq)[[1]]
-}
+norm_matrix <- counts(norm_deseq, normalized = TRUE)
 
 # Create OUTRIDER dataset with the new matrix. 
 ods_norm <- OutriderDataSet(
