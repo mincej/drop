@@ -8,6 +8,7 @@
 #'     setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
 #'     workingDir: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/"`'
 #'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
+#'     filterMultiMappingReads: '`sm cfg.AS.get("filterMultiMappingReads")`'
 #'   input:
 #'     colData: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/annotations/{dataset}.tsv"`'
 #'   output:
@@ -32,9 +33,20 @@ col_data <- fread(colDataFile)
 
 col_data$strand <- 0L
 
-fds <- FraserDataSet(colData = col_data,
-                     workingDir = workingDir,
-                     name       = paste0("raw-local-", dataset))
+if (snakemake@params$filterMultiMappingReads) {
+    fds <- FraserDataSet(
+        colData = col_data,
+        workingDir = workingDir,
+        name       = paste0("raw-local-", dataset),
+        bamParam   = ScanBamParam(tagFilter=list("NH"=c(1)))
+    )
+} else {
+    fds <- FraserDataSet(
+        colData = col_data,
+        workingDir = workingDir,
+        name       = paste0("raw-local-", dataset)
+    )
+}
 
 # Add paired end and strand specificity to the fds
 pairedEnd(fds) <- colData(fds)$PAIRED_END

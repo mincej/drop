@@ -54,7 +54,7 @@ if(nrow(sa[is.na(RNA_ID)]) > 0){
 
 
 #' Check for nonexistent BAM files
-if(sum(sa[, "EXTERNAL"]) != nrow(sa)){
+if(sum(is.nan(sa[["GENE_COUNTS_FILE"]])) != 0){
   sa[, aux1 := file.exists(RNA_BAM_FILE)]
   if(any(sa$aux1 == F)){
     print('The following BAM files do not exist: ')

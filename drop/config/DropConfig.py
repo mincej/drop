@@ -14,9 +14,9 @@ class DropConfig:
         # wbuild keys
         "projectTitle", "htmlOutputPath", "scriptsPath", "indexWithFolderName", "fileRegex", "readmePath",
         # global parameters
-        "root", "sampleAnnotation", "geneAnnotation", "genomeAssembly", "exportCounts", "tools", "hpoFile", "genome", "stream_to_log",
+        "root", "sampleAnnotation", "geneAnnotation", "genomeAssembly", "exportCounts", "tools", "hpoFile", "genome", "stream_to_log", "proteinCoding",
         # modules
-        "aberrantExpression", "aberrantSplicing", "mae","rnaVariantCalling"
+        "aberrantExpression", "aberrantSplicing", "mae", "rnaVariantCalling"
 
     ]
 
@@ -131,6 +131,7 @@ class DropConfig:
         config_dict["wBuildPath"] = utils.getWBuildPath()
 
         setKey = utils.setKey
+        setKey(config_dict, None, "proteinCoding", False)
         setKey(config_dict, None, "stream_to_log", "no")
         setKey(config_dict, None, "fileRegex", r".*\.(R|md)")
         setKey(config_dict, None, "genomeAssembly", "hg19")

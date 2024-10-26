@@ -72,6 +72,7 @@ class RVC(Submodule):
         setKey(dict_, None, "minAlt", 3)
         setKey(dict_, None, "createSingleVCF", False)
         setKey(dict_, None, "yieldSize", 100000)
+        setKey(dict_, None, "filterMultiMappingReads", "yes")
 
         if dict_["run"]:
             dict_ = utils.checkKeys(dict_, keys=["repeat_mask","highQualityVCFs","dbSNP"], check_files=True)

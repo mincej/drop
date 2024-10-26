@@ -11,6 +11,7 @@
 # 7 {resources.tmpdir}
 # 8 {output}
 # 9 {hcArgs}
+# 10 {params.filterMultiMappingReads}
 
 input_bam=$1
 input_bai=$2
@@ -21,7 +22,7 @@ ncbi2ucsc=$6
 tmpdir=$7
 output_gVCF=$8
 hcArgs=$9
-
+fmmr=$10
 # use samtools and bcftools to identify whether the bam file and
 # the dbSNP file are in the same chr format.
 # Use || true to avoid erros on an empty grep search
@@ -49,7 +50,20 @@ fi
 
 echo "starting HaplotypeCaller"
 # using the tmp known_sites vcf use HaplotypeCaller
-gatk --java-options -Djava.io.tmpdir=${tmpdir} HaplotypeCaller -I $input_bam -R $ref \
---dont-use-soft-clipped-bases -stand-call-conf 20.0 --dbsnp "${tmp_vcf}" \
---output-mode EMIT_ALL_CONFIDENT_SITES -ERC GVCF $hcArgs  \
--O $output_gVCF
+if fmmr; then
+    echo "Filtering multimappers."
+    gatk --java-options -Djava.io.tmpdir=${tmpdir} HaplotypeCaller -I $input_bam -R $ref \
+    --dont-use-soft-clipped-bases -stand-call-conf 20.0 --dbsnp "${tmp_vcf}" \
+    --output-mode EMIT_ALL_CONFIDENT_SITES -ERC GVCF $hcArgs  \
+    --read-filter ReadTagValueFilter \
+    --read-filter-tag NH \
+    --read-filter-tag-comp 1 \
+    --read-fitler-tag-op EQUAL \
+    -O $output_gVCF
+else
+    echo "Filtering multimappers."
+    gatk --java-options -Djava.io.tmpdir=${tmpdir} HaplotypeCaller -I $input_bam -R $ref \
+    --dont-use-soft-clipped-bases -stand-call-conf 20.0 --dbsnp "${tmp_vcf}" \
+    --output-mode EMIT_ALL_CONFIDENT_SITES -ERC GVCF $hcArgs  \
+    -O $output_gVCF
+fi

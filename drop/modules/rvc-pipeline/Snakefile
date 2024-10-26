@@ -450,6 +450,7 @@ rule haplotypeCaller:
         ncbi2ucsc = cfg.workDir / "Scripts/Pipeline/chr_NCBI_UCSC.txt",
         hcArgs = getHaploCallerArgs(),
         dbSNP = getKnownVCFs(dbSNP_only = True),
+        filterMultiMappingReads = cfg.MAE.get("filterMultiMappingReads"),
         log_func = log_code
     log:
         str(tmp_dir) + "/RVC/all_haplocaller/{sample}.log"

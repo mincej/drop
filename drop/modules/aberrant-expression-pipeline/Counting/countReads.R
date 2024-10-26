@@ -6,6 +6,7 @@
 #'     snakemake: '`sm str(tmp_dir / "AE" / "{annotation}" / "counts" / "{sampleID}.log") if cfg.get("stream_to_log") != "no" else str(tmp_dir / "AE" / "{annotation}" / "counts" / "{sampleID}.Rds")`'
 #'   params:
 #'     COUNT_PARAMS: '`sm lambda w: cfg.AE.getCountParams(w.sampleID)`'
+#'     filterMultiMappingReads: '`sm cfg.AE.get("filterMultiMappingReads")`'
 #'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
 #'   input:
 #'     sample_bam: '`sm lambda w: sa.getFilePath(w.sampleID, file_type="RNA_BAM_FILE") `'
@@ -39,6 +40,12 @@ paired_end <- as.logical(count_params$PAIRED_END)
 overlap <- as.logical(count_params$COUNT_OVERLAPS)
 inter_feature <- ! overlap # inter_feature = FALSE does not allow overlaps
 
+# Setup params for filtering multimapped reads. 
+scan_param <- ScanBamParam()
+if (snakemake@params$filterMultiMappingReads) {
+  scan_param <- ScanBamParam(tagFilter=list("NH"=1))
+}
+
 # infer preprocessing and strand info
 preprocess_reads <- NULL
 if (strand == "yes") {
@@ -56,6 +63,7 @@ if (strand == "yes") {
 # read files
 bam_file <- BamFile(snakemake@input$sample_bam, yieldSize = snakemake@config$aberrantExpression$yieldSize)
 count_ranges <- readRDS(snakemake@input$count_ranges)
+
 # set chromosome style
 seqlevelsStyle(count_ranges) <- seqlevelsStyle(bam_file)
 
@@ -82,6 +90,7 @@ se <- summarizeOverlaps(
     , count.mapped.reads = T
     , inter.feature = inter_feature # TRUE: reads mapping to multiple features are dropped
     , preprocess.reads = preprocess_reads
+    , param = scan_param
     , BPPARAM = MulticoreParam(snakemake@threads)
 )
 colnames(se) <- sampleID

@@ -37,6 +37,7 @@ aberrantExpression:
     genesToTest: null
     maxTestedDimensionProportion: 3
     yieldSize: 2000000
+    filterMultiMappingReads: true
 
 aberrantSplicing:
     run: true
@@ -53,6 +54,7 @@ aberrantSplicing:
     padjCutoff: 0.1
     maxTestedDimensionProportion: 6
     genesToTest: null
+    filterMultiMappingReads: true
     ### FRASER1 configuration
     FRASER_version: "FRASER" 
     deltaPsiCutoff : 0.3 
@@ -79,6 +81,7 @@ mae:
     qcGroups:
       - mae
     dnaRnaMatchCutoff: 0.85
+    filterMultiMappingReads: true
 
 rnaVariantCalling:
     run: false
@@ -96,6 +99,10 @@ rnaVariantCalling:
     hcArgs: ""
     minAlt: 3
     yieldSize: 100000
+    filterMultiMappingReads: "yes" # "yes" - filter multimapping reads
+                                   # "no" - keep multimapping reads
+                                   # "highest" - keep the highest quality mapping
+                                   #             of a multimapping read. 
 
 tools:
     gatkCmd: gatk

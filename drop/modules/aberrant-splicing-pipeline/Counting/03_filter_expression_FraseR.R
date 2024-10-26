@@ -7,6 +7,7 @@
 #'   params:
 #'     setup: '`sm cfg.AS.getWorkdir() + "/config.R"`'
 #'     workingDir: '`sm cfg.getProcessedDataDir() + "/aberrant_splicing/datasets/"`'
+#'     localIDs: '`sm lambda w: sa.getIDsByGroup(w.dataset, assay="RNA")`'
 #'     exCountIDs: '`sm lambda w: sa.getIDsByGroup(w.dataset, assay="SPLICE_COUNT")`'
 #'     initExt: '`sm str(projectDir / ".drop" / "helpers" / "init_ext_FRASER_counts.R")`'
 #'     logSinker: '`sm str(projectDir / ".drop" / "helpers" / "log_sinker.R")`'
@@ -42,6 +43,7 @@ quantileMinExpression <- params$quantileMinExpression
 minDeltaPsi <- params$minDeltaPsi
 filterOnJaccard <- (params$FRASER_version == "FRASER2")
 
+print(exCountFiles)
 register(MulticoreParam(snakemake@threads))
 # Limit number of threads for DelayedArray operations
 setAutoBPPARAM(MulticoreParam(snakemake@threads))
@@ -50,8 +52,8 @@ fds <- NULL
 
 # If there are no local IDs, initialize our data FRASER data using the first external count file. 
 if(length(localIDs) == 0){
-    resource <- exCountFiles[[1]]
 
+    resource <- exCountFiles[[1]]
     fds <- externalFRASER(dirname(resource), sample_anno_file, workingDir, paste0("raw-", dataset), exCountIDs)
     
     exCountFiles <- exCountFiles[exCountFiles != resource]

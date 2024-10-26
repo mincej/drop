@@ -47,6 +47,7 @@ class MAE(Submodule):
         setKey(dict_, None, "maxVarFreqCohort", 0.05)
         setKey(dict_, None, "gnomAD", False)
         setKey(dict_, None, "dnaRnaMatchCutoff", 0.85)
+        setKey(dict_, None, "filterMultiMappingReads", "yes")
         if dict_["run"]:
             dict_ = utils.checkKeys(dict_, keys=["qcVcf"], check_files=True)
         return dict_

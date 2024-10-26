@@ -71,6 +71,7 @@ rule mae_allelicCounts:
         samtools = cfg.getTool("samtoolsCmd"),
         gatk = cfg.getTool("gatkCmd"),
         gatkIgnoreHeaderCheck = cfg.MAE.get("gatkIgnoreHeaderCheck"),
+        filterMultiMappingReads = cfg.MAE.get("filterMultiMappingReads"),
         log_func = log_code
     log:
         str(tmp_dir) + "/MAE/allelic_counts/{vcf}--{rna}.log"

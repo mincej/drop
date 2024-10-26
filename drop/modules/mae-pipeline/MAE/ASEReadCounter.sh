@@ -11,6 +11,7 @@
 # 9 {params.bcftools}
 #10 {params.samtools}
 #11 {params.gatk}
+#12 {params.filterMultiMapReads}
 
 ncbi2ucsc=$1
 ucsc2ncbi=$2
@@ -23,6 +24,7 @@ output=$8
 bcftools=$9
 samtools=${10}
 gatk=${11}
+fmmr=${12}
 
 tmp=$(mktemp)
 header="contig\tposition\tvariantID\trefAllele\taltAllele\t"
@@ -58,19 +60,37 @@ else
   exit 1
 fi
 
-
-for chr in $chr_subset; do
-  $gatk ASEReadCounter \
-    -R ${fasta} \
-    -I ${bam_file} \
-    -V ${vcf_file} \
-    -L ${chr} \
-    --verbosity ERROR \
-    --QUIET true \
-    --disable-sequence-dictionary-validation ${sanity} |
-    tail -n+2 >>$tmp
-done
-
+if fmmr; then 
+  echo "Filtering multimappers."
+  for chr in $chr_subset; do
+    $gatk ASEReadCounter \
+      -R ${fasta} \
+      -I ${bam_file} \
+      -V ${vcf_file} \
+      -L ${chr} \\
+      --read-filter ReadTagValueFilter \
+      --read-filter-tag NH \
+      --read-filter-tag-comp 1 \
+      --read-fitler-tag-op EQUAL \
+      --verbosity ERROR \
+      --QUIET true \
+      --disable-sequence-dictionary-validation ${sanity} |
+      tail -n+2 >>$tmp
+  done
+else
+  echo "Keeping multimappers."
+  for chr in $chr_subset; do
+    $gatk ASEReadCounter \
+      -R ${fasta} \
+      -I ${bam_file} \
+      -V ${vcf_file} \
+      -L ${chr} \
+      --verbosity ERROR \
+      --QUIET true \
+      --disable-sequence-dictionary-validation ${sanity} |
+      tail -n+2 >>$tmp
+  done
+fi
 cat $tmp | awk -v id="${mae_id}" \
   -F $'\t' 'BEGIN {OFS = FS} NR==1{print $0, "ID"} NR>1{print $0, id}' |
   bgzip >${output}
